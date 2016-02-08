@@ -6,4 +6,6 @@ public enum EventDefine
 	EnterFinal,
 	RenewSwipeTime,
 	AddSwipeTime,
+
+	GrowFlowerOn,
 }

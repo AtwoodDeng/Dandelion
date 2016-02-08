@@ -16,6 +16,17 @@ public class Global {
 		float angle = Random.Range(0, Mathf.PI * 2 );
 		return new Vector2(Mathf.Cos(angle),Mathf.Sin(angle));
 	}
+
+	static public Vector3 GetRandomDirectionV3()
+	{
+		float theta = Random.Range(0, Mathf.PI * 2f );
+		float beta = Random.Range(0, Mathf.PI * 2f );
+		return new Vector3(Mathf.Sin(theta) * Mathf.Cos(beta)
+			,Mathf.Sin(theta) * Mathf.Sin(beta)
+			,Mathf.Cos(theta));
+	}
+
+	static public string LAND_TAG = "Land";
 }
 
 [System.SerializableAttribute]
@@ -41,4 +52,5 @@ public enum PetalState
 	Link,
 	Fly,
 	Land,
+	FlyAway,
 }
