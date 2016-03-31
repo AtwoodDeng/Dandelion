@@ -117,7 +117,7 @@ public class FingerEventsSamplePart1 : SampleBase
                 stationaryParticleEmitter.emit = true;
 
                 UI.StatusText = "Charge: " + ( 100 * chargePercent ).ToString( "N1" ) + "%";
-            }
+			}
         }
         else if( e.Phase == FingerMotionPhase.Ended )
         {

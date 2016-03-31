@@ -132,6 +132,7 @@ public abstract class FingerEventDetector : MonoBehaviour
 
         if( !MessageTarget )
             MessageTarget = this.gameObject;
+
     }
 
     protected virtual void Start()

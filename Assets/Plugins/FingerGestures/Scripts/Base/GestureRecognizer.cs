@@ -194,7 +194,8 @@ public abstract class Gesture
         if( !raycaster || !raycaster.enabled )
             return null;
 
-        if( !raycaster.Raycast( screenPos, out lastHit ) )
+
+		if( !raycaster.Raycast( screenPos, out lastHit ) )
             return null;
 
         return lastHit.collider.gameObject;
@@ -667,6 +668,8 @@ public abstract class GestureRecognizer : MonoBehaviour
     /// Return type description of the internal gesture class used by the recognizer (used by editor)
     /// </summary>
     public abstract System.Type GetGestureType();
+
+	public List<string> IgnoreLayers;
 
     protected virtual void Awake()
     {

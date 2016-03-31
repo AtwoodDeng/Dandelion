@@ -27,6 +27,20 @@ public class Global {
 	}
 
 	static public string LAND_TAG = "Land";
+
+	static public float StandardizeAngle(float angle)
+	{
+		float res = angle;
+		while(res > 180f) res -= 360f;
+		while(res <= -180f) res += 360f;
+		return res;
+	}
+
+
+	static public int ROCK_ORDER = 50;
+	static public int FLOWER_ORDER = 10;
+
+
 }
 
 [System.SerializableAttribute]
@@ -53,4 +67,24 @@ public enum PetalState
 	Fly,
 	Land,
 	FlyAway,
+}
+[System.SerializableAttribute]
+public struct WindSensablParameter
+{
+	public bool shouldStore;
+	public bool shouldUpdate;
+}
+
+public enum PetalType
+{
+	Normal,
+	Final,
+}
+
+[System.Serializable]
+public struct PetalInfo
+{
+	public Vector3 position;
+	public PetalType type;
+	public Area affectPointArea;
 }

@@ -10,7 +10,7 @@
 
 		Cull Off ZWrite Off ZTest Always
 		Blend SrcAlpha OneMinusSrcAlpha
-		Tags { "Queue"="Transparent+10" }
+		Tags { "Queue"="Transparent+15" }
 		
 
 		Pass

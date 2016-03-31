@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 using System.Reflection; // for clipboard stuff
+using System.Collections.Generic;
 
 public abstract class GestureRecognizerInspector<T> : Editor where T:GestureRecognizer
 {
@@ -78,6 +79,28 @@ public abstract class GestureRecognizerInspector<T> : Editor where T:GestureReco
         }
                 
     }
+
+//	List<string> layers = new List<string>();
+//
+//	protected virtual void OnMask()
+//	{
+//		if ( layers.Count <= 0 )
+//		{
+//			for( int i = 0 ; i < 32 ; ++ i )
+//			{
+//				layers.Add(LayerMask.LayerToName(i));
+//			}
+//			for ( int i = 8 ; i < 32 ; ++ i )
+//			{
+//				if ( layers[i] == "" ) {
+//					layers.RemoveRange( i , 32- i );
+//					break;
+//				}
+//			}
+//		}
+//
+//		Gesture.mask = EditorGUILayout.MaskField( "Ignore Mask" , Gesture.mask , layers.ToArray() );
+//	}
 
     protected void UISectionTitle( string title )
     {

@@ -7,5 +7,11 @@ public enum EventDefine
 	RenewSwipeTime,
 	AddSwipeTime,
 
+	BlowFlower,
+
 	GrowFlowerOn,
+
+	GrowFinalFlower,
+
+	EndLevel,
 }
