@@ -11,6 +11,7 @@ public class Flower3D : Flower , WindSensable {
 	[SerializeField] GameObject FlowerPetalFinalPrefab;
 	[SerializeField] float growDelay = 1f; 
 	[SerializeField] Petal3D[] flowerPetals;
+	[SerializeField] float endBlow = 10f;
 
 	List<SpriteRenderer> leafList = new List<SpriteRenderer>();
 
@@ -58,10 +59,35 @@ public class Flower3D : Flower , WindSensable {
 
 	void OnEndLevel(Message msg )
 	{
+		StartCoroutine(BlowAll());
+	}
+
+	IEnumerator BlowAll()
+	{
 		Debug.Log("End level");
-		for( int i = 0 ; i < petals.Count ; ++ i)
+
+		int i = 0 ;
+		while(true)
 		{
-			petals[i].Blow( Global.GetRandomDirection() , 0 , Petal.BlowType.FlyAway );
+			if ( petals != null && petals.Count > 0 )
+			{
+				int iPetal = i % petals.Count;
+				if ( petals[iPetal].state == PetalState.Link ) {
+					petals[iPetal].Blow( Vector2.up + Global.GetRandomDirection() * 0.6f , Random.Range( 0 , endBlow ) , Petal.BlowType.FlyAway );
+				}
+			}
+
+			if ( flowerPetals != null && flowerPetals.Length > 0 )
+			{
+				int iFlower = i % flowerPetals.Length ;
+				if ( flowerPetals[iFlower].state == PetalState.Link ) {
+					flowerPetals[iFlower].Blow( Vector2.up + Global.GetRandomDirection() * 0.6f , Random.Range( 0 , endBlow ) , Petal.BlowType.FlyAway );
+				}
+					
+			}
+			i++;
+
+			yield return new WaitForSeconds( grow3DPara.flowerPetalUnlinkInterval );
 		}
 	}
 
@@ -226,7 +252,7 @@ public class Flower3D : Flower , WindSensable {
 		{
 			for ( int i = 0 ; i < flowerPetals.Length ; ++ i )
 			{
-				flowerPetals[i].Blow( Global.GetRandomDirection() , 0 , Petal.BlowType.FlyAway );
+				flowerPetals[i].Blow( Vector2.right + 0.4f * Global.GetRandomDirection().normalized , 0 , Petal.BlowType.FlyAway );
 				yield return new WaitForSeconds(grow3DPara.flowerPetalUnlinkInterval );
 			}
 
@@ -264,6 +290,7 @@ public class Flower3D : Flower , WindSensable {
 	{
 		if ( canBlow() )
 		{
+			Debug.Log("Blow " + move + " " + velocity);
 			base.Blow (move, velocity);
 
 			// make the flower react to the blow

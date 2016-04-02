@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using DG.Tweening;
 
 public class CameraManager : MonoBehaviour {
 
@@ -15,6 +16,31 @@ public class CameraManager : MonoBehaviour {
 	public Vector3 frame;
 	public Vector3 frameOffset;
 	public float senseIntense = 0.2f;
+
+	[SerializeField] float EndFadeSize = 10f;
+	[SerializeField] float EndFadeTime = 2f;
+	[SerializeField] float EndFadeDelay = 0;
+
+	void OnEnable()
+	{
+		EventManager.Instance.RegistersEvent(EventDefine.EndLevel, OnEndLevel);
+	}
+
+	void OnDisable()
+	{
+		EventManager.Instance.UnregistersEvent(EventDefine.EndLevel, OnEndLevel);
+	}
+
+	void OnEndLevel(Message msg )
+	{
+		//fade This
+		GetComponent<Camera>().DOOrthoSize( EndFadeSize , EndFadeTime ).SetDelay( EndFadeDelay );
+		Camera[] childCameras = GetComponentsInChildren<Camera>();
+		foreach( Camera c in childCameras )
+		{
+			c.DOOrthoSize( EndFadeSize , EndFadeTime ).SetDelay( EndFadeDelay );
+		}
+	}
 
 	void Awake()
 	{
@@ -47,6 +73,8 @@ public class CameraManager : MonoBehaviour {
 
 //	 	transform.position = transform.position + move;
 	}
+
+
 
 
 

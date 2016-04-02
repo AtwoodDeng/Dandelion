@@ -125,14 +125,16 @@ public class Petal3D : Petal {
     
     public override void Blow (Vector2 move, float vel , BlowType blowType = BlowType.Normal) {
 		base.Blow(move, vel , blowType );
-        Vector3 blowDirection = (move.normalized + 0.4f * Global.GetRandomDirection()).normalized ;
+		Vector3 blowDirection = move;
         float blowVelocity = vel * Random.Range(0.75f , 1.25f);
-    	Vector3 blowImpulse = ( blowDirection * blowVelocity * blowIntense * 1000f );
-        blowImpulse = Vector3.ClampMagnitude(blowImpulse, BlowImpulseRange.max);
+		Vector3 blowImpulse = ( blowDirection * blowVelocity * blowIntense * 0.001f  );
+		Debug.Log("Blow Impulse before " + blowImpulse);
+		blowImpulse = Vector3.ClampMagnitude(blowImpulse, BlowImpulseRange.max);
         
         if ( blowImpulse.magnitude < BlowImpulseRange.min )
             blowImpulse = blowImpulse.normalized * BlowImpulseRange.min;
-        AddImpluse( blowImpulse );
+		AddImpluse( blowImpulse );
+		Debug.Log("Blow Impulse after " + blowImpulse);
         
         if ( blowType.Equals(BlowType.Normal) )
         {
@@ -147,16 +149,25 @@ public class Petal3D : Petal {
         	{
         		c.isTrigger = false;
         	}
+
+			Debug.Log("Blow Normal");
         }
         else if (blowType.Equals(BlowType.FlyAway))
         {
             float fadeTime = Random.Range( flyAwayFadeTime.min , flyAwayFadeTime.max);
-			petalModel.transform.DOScale(0, fadeTime).OnComplete( SelfDestory ).SetEase(Ease.InExpo );
+			// set different animation for flower petal/ non-flower petal
+			// flower petal should have a longer animation
 			if ( isFlowerPetal )
-			{
-				SpriteRenderer render = petalModel.GetComponentInChildren<SpriteRenderer>();
-				render.DOFade( 0 , fadeTime );
-			}
+				petalModel.transform.DOScale(0, fadeTime).OnComplete( SelfDestory ).SetEase(Ease.InExpo );
+			else
+				petalModel.transform.DOScale(0, fadeTime).OnComplete( SelfDestory ).SetEase(Ease.OutCubic );
+//			if ( isFlowerPetal )
+//			{
+//				SpriteRenderer render = petalModel.GetComponentInChildren<SpriteRenderer>();
+//				render.DOFade( 0 , fadeTime );
+			//			}
+
+			Debug.Log("Blow FlyAway");
         }
 
         follow.windSensablParameter.shouldUpdate = true;

@@ -50,6 +50,14 @@ public class LogicManager : MonoBehaviour {
 	{
 		get { return m_swipeTime; }
 	}
+
+	bool m_isEnded;
+	public bool isEnded
+	{
+		get { 
+			return m_isEnded;
+		}
+	}
 		
 	void OnEnable()
 	{
@@ -69,20 +77,28 @@ public class LogicManager : MonoBehaviour {
 
 	void Update()
 	{
-		if ( isEnd )
+		if ( m_isEnded && !checkEnd )
 		{
 			EventManager.Instance.PostEvent( EventDefine.EndLevel );
+			checkEnd = true;
+		}
+
+		if ( Input.GetKeyDown(KeyCode.E) && Input.GetKey(KeyCode.LeftControl))
+		{
+			EventManager.Instance.PostEvent(EventDefine.EndLevel);
 		}
 	}
 
-	bool isEnd = false;
+	bool checkEnd = false;
 	void GrowFinalFlower( Message msg )
 	{
 		if ( m_levelManager.CheckLevelFinished() )
 		{
-			isEnd = true;
+			m_isEnded = true;
 		}
 	}
+
+
 
 	void BlowFlower( Message msg )
 	{

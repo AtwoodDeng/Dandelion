@@ -134,20 +134,22 @@ public class Flower : MonoBehaviour {
 					if (petal.state == PetalState.Link && Random.Range(0, 1f) < blowChance)
 					{
 						if (Random.Range(0, 1f) < flyAwayChance)
-							petal.Blow(move, velocity, Petal.BlowType.FlyAway);
+							petal.Blow(move.normalized + 0.6f * Global.GetRandomDirection(), velocity, Petal.BlowType.FlyAway);
 						else
-							petal.Blow(move, velocity, Petal.BlowType.Normal);
+							petal.Blow(move.normalized + 0.4f * Global.GetRandomDirection(), velocity, Petal.BlowType.Normal);
 
 						petal.transform.parent = LogicManager.Level.transform;
 					}
 				}
 			}else{
-				for ( int i = 0 ; i < blowNumber && i < petals.Count ; ++ i )
+				int blow = 0 ;
+				for ( int i = 0 ; blow < blowNumber && i < petals.Count ; ++ i )
 				{
 					if ( petals[i].state == PetalState.Link )
 					{
-						petals[i].Blow( move , velocity , Petal.BlowType.Normal );
+						petals[i].Blow( move.normalized + 0.4f * Global.GetRandomDirection() , velocity , Petal.BlowType.Normal );
 						petals[i].transform.parent = LogicManager.Level.transform;
+						blow ++;
 					}
 				}
 
@@ -155,7 +157,7 @@ public class Flower : MonoBehaviour {
 				{
 					if ( petals[i].state == PetalState.Link && Random.Range(0, 1f) < blowChance )
 					{
-						petals[i].Blow( move , velocity , Petal.BlowType.FlyAway );
+						petals[i].Blow( move.normalized + 0.6f * Global.GetRandomDirection() , velocity , Petal.BlowType.FlyAway );
 						petals[i].transform.parent = LogicManager.Level.transform;
 					}
 				}
