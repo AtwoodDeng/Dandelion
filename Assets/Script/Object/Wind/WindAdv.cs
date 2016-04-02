@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 
 [RequireComponent(typeof(Collider))]
 public class WindAdv : MonoBehaviour {
@@ -11,6 +12,14 @@ public class WindAdv : MonoBehaviour {
 	[SerializeField] float Vorticity = 1f;
 	[SerializeField] int iterationTime = 50;
 
+	// *************  UI **************
+	[SerializeField] SpriteRenderer windBackUI;
+	[SerializeField] GameObject windArrowUIPrefab;
+	[SerializeField] GameObject WindTestPrefab;
+	[SerializeField] AnimationCurve ArrowScaleCurve;
+	[SerializeField] int windTestNum = 100;
+	SpriteRenderer[] UIarrows;
+	WindTest[] WindTests;
 
 	void Update()
 	{
@@ -82,14 +91,16 @@ public class WindAdv : MonoBehaviour {
 	{
 		Init();
 		InitBuffers();
+		InitUI();
 
 		ForAllInt(m_obstacle,UpdateObstacle);
 		ForAllVec2(m_velocity, InitVelocity);
 		ForAllVec2(m_force_velocity, InitForceVelocity);
 
-
 		StartCoroutine(UpdateWind());
 	}
+
+
 
 	void Init()
 	{
@@ -97,6 +108,8 @@ public class WindAdv : MonoBehaviour {
 		height = (int)( Size.y / CellSize.y );
 
 		GetComponent<BoxCollider>().size = Size;
+
+		gameObject.tag = "Wind";
 	}
 
 	void InitBuffers()
@@ -108,6 +121,8 @@ public class WindAdv : MonoBehaviour {
 		m_vorticity = new float[width * height];
 		m_force_velocity = new Vector2[width * height];
 	}
+
+//////////////////////// deal array //////////////////////////
 
 	void ForAllVec2(Vector2[] arr , DealVec2 func , int threadID = -1 )
 	{
@@ -503,9 +518,7 @@ public class WindAdv : MonoBehaviour {
 		if (ws != null )
 		{
 			WindSensableList.Add(ws);
-			
 		}
-
 	}
 
 
@@ -566,6 +579,117 @@ public class WindAdv : MonoBehaviour {
 	}
 
 //////////////////////
+
+
+// ************ UI *************
+
+	public bool UIShowed = false;
+
+	void InitUI()
+	{
+		windBackUI.transform.localScale = new Vector3( Size.x * 100f / windBackUI.sprite.texture.width 
+			, Size.y * 100f / windBackUI.sprite.texture.height );
+		windBackUI.DOFade(0,0);
+
+//		UIarrows = new  SpriteRenderer[width * height ];
+//		for ( int i = 0 ; i < width ; ++ i )
+//			for ( int j = 0 ; j < height ; ++ j )
+//			{
+//				GameObject arrow = Instantiate( windArrowUIPrefab ) as GameObject;
+//				arrow.transform.SetParent(transform );
+//				arrow.transform.position = ij2Pos( i , j ) ;
+//
+//				SpriteRenderer sprite = arrow.GetComponent<SpriteRenderer>();
+//				sprite.DOFade(0,0);
+//
+//				UIarrows[ij2index(i,j)] = sprite;
+//				sprite.enabled = false;
+//			}
+
+		WindTests = new WindTest[ windTestNum ];
+		for ( int i = 0 ; i < windTestNum ; ++ i )
+		{
+			GameObject windTest = Instantiate( WindTestPrefab ) as GameObject;
+			windTest.transform.SetParent(transform );
+			windTest.SetActive(false);
+
+			WindTests[i] = windTest.GetComponent<WindTest>();
+			WindTests[i].wind = this;
+		}
+			
+
+		UIShowed = false;
+	}
+
+	public void InitWindTestPos()
+	{
+		for ( int i = 0 ; i < windTestNum ; ++ i )
+		{
+			Vector3 ranPos = new Vector3 ( Random.Range( - Size.x / 2 , Size.x / 2 ) , Random.Range( - Size.y / 2 , Size.y / 2 ) , 0 ) + transform.position;
+			while( m_obstacle[Pos2ij(ranPos)] != OBSTACLE_EMPTY  ) 
+			{
+				ranPos = new Vector3 ( Random.Range( - Size.x / 2 , Size.x / 2 ) , Random.Range( - Size.y / 2 , Size.y / 2 ) , 0 );
+			}
+			WindTests[i].gameObject.SetActive(true);
+			WindTests[i].Enter(ranPos);
+		}
+	}
+
+	public void ShowUI()
+	{
+//		UpdateArrow();
+		windBackUI.DOFade( 0.5f , 2f ).SetEase(Ease.OutExpo);
+		InitWindTestPos();
+
+//		for( int i = 0 ; i < width ; ++ i )
+//			for ( int j = 0 ; j < height ; ++ j )
+//			{
+//				UIarrows[ij2index(i,j)].enabled = true;
+//				UIarrows[ij2index(i,j)].DOFade( 1f , 0.5f ).SetDelay( 0.05f * ( i + j )); 
+//			}
+		UIShowed = true;
+	}
+
+	public void HideUI()
+	{
+		windBackUI.DOFade( 0f , 2f ).SetEase(Ease.InExpo);
+
+		for ( int i = 0 ; i < windTestNum ; ++ i )
+		{
+			WindTests[i].Exit();
+		}
+
+//		for( int i = 0 ; i < width ; ++ i )
+//			for ( int j = 0 ; j < height ; ++ j )
+//			{
+//				UIarrows[ij2index(i,j)].enabled = false;
+//				UIarrows[ij2index(i,j)].DOFade( 0f , 0.5f ).SetDelay( 0.02f * ( i + j )); 
+//			}
+		UIShowed = false;
+	}
+
+
+//	void UpdateArrow()
+//	{	
+//		for( int i = 0 ; i < width ; ++ i )
+//			for ( int j = 0 ; j < height ; ++ j )
+//			{
+//				Vector2 velocity = GetVelocity( ij2Pos( i , j ) );
+//				float vel = ArrowScaleCurve.Evaluate( velocity.magnitude );
+//				UIarrows[ij2index(i,j)].transform.localScale = vel * Vector3.one;
+//				float angel = Mathf.Atan2( velocity.y , velocity.x ) * Mathf.Rad2Deg;
+//				angel -= 90f ;
+//				UIarrows[ij2index(i,j)].transform.eulerAngles = new Vector3( 0 , 0 , angel );
+//			}
+//		
+//	}
+
+//////////////////////
+
+	public Vector3 GetSize()
+	{
+		return Size;
+	}
 
 	void OnDrawGizmos()
 	{

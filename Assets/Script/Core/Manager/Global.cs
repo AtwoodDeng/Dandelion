@@ -37,10 +37,15 @@ public class Global {
 	}
 
 
-	static public int ROCK_ORDER = 50;
-	static public int FLOWER_ORDER = 10;
+	static public int ROCK_ORDER 				= 50;  
+	static public int SHADOW_ORDER 				= 40;  
+	static public int FLOWER_STEM_ORDER 		= 10;
+	static public int FLOWER_LEAF_ORDER 		= 8;
+	static public int LIGHT_ORDER 				= 0;
+	static public int WIND_ARROW_ORDER 			= -25;
+	static public int WIND_BACK_ORDER 			= -30;
 
-
+	static public float WIND_UI_Z = 2f;
 }
 
 [System.SerializableAttribute]

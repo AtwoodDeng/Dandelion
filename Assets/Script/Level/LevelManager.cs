@@ -6,6 +6,8 @@ public class LevelManager : MonoBehaviour {
 	[SerializeField] GameObject level;
 	[SerializeField] int blowTime;
 	[SerializeField] List<PointArea> pointAreas = new List<PointArea>();
+	[SerializeField] WindAdv wind;
+
 
 	virtual public GameObject GetLevelObject()
 	{
@@ -34,6 +36,19 @@ public class LevelManager : MonoBehaviour {
 				return false;
 		}
 		return true;
+	}
+
+	public WindAdv GetWind()
+	{
+		if ( wind != null ) 
+			return wind;
+		GameObject windObj = GameObject.FindWithTag( "Wind");
+
+		if ( windObj != null )
+		{
+			wind = windObj.GetComponent<WindAdv>();
+		}
+		return wind;
 	}
 
 	virtual public int GetBlowTime()

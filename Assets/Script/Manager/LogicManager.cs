@@ -67,11 +67,20 @@ public class LogicManager : MonoBehaviour {
 		EventManager.Instance.UnregistersEvent(EventDefine.GrowFinalFlower,GrowFinalFlower);
 	}
 
+	void Update()
+	{
+		if ( isEnd )
+		{
+			EventManager.Instance.PostEvent( EventDefine.EndLevel );
+		}
+	}
+
+	bool isEnd = false;
 	void GrowFinalFlower( Message msg )
 	{
 		if ( m_levelManager.CheckLevelFinished() )
 		{
-			EventManager.Instance.PostEvent( EventDefine.EndLevel );
+			isEnd = true;
 		}
 	}
 

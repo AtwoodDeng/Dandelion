@@ -38,7 +38,6 @@ public class M2DLight : MonoBehaviour {
 		lightNum = (int) (width / lightWidth);
 
 
-
 		InitLights();
 		UpdateLights();
 	}
@@ -65,7 +64,6 @@ public class M2DLight : MonoBehaviour {
 					light.material = new Material( light.material.shader );
 					light.material.SetColor("_Color" , lightColor );
 					light.material.SetColor("_ShadowColor" , shadowColor );
-
 
 					lights.Add(light);
 				}

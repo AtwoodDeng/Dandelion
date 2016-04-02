@@ -10,4 +10,13 @@ public class FunctionWindows : MonoBehaviour {
 	{
 		NumberText.text = LogicManager.Instance.RemainBlowTime.ToString();
 	}
+
+	public void OnWindButton()
+	{
+		WindAdv wind = LogicManager.LevelManager.GetWind();
+		if ( wind.UIShowed )
+			wind.HideUI();
+		else
+			wind.ShowUI();
+	}
 }

@@ -58,6 +58,7 @@ public class Flower3D : Flower , WindSensable {
 
 	void OnEndLevel(Message msg )
 	{
+		Debug.Log("End level");
 		for( int i = 0 ; i < petals.Count ; ++ i)
 		{
 			petals[i].Blow( Global.GetRandomDirection() , 0 , Petal.BlowType.FlyAway );
@@ -101,7 +102,6 @@ public class Flower3D : Flower , WindSensable {
 			{
 				SpriteRenderer sprite = stems[i].GetComponent<SpriteRenderer>();
 				Material m = new Material( sprite.material.shader );
-				Debug.Log(m.name );
 				Color fromColor = Color.Lerp( Color.black , Color.white , 1.0f * i / stems.Length );
 				Color toColor = Color.Lerp( Color.black , Color.white , 1.0f * ( i + 1 ) / stems.Length );
 				m.SetColor("_ColorFirst" , fromColor );
@@ -219,7 +219,7 @@ public class Flower3D : Flower , WindSensable {
 		{
 			Message msg = new Message();
 			msg.AddMessage( "flower" , this );
-
+			Debug.Log("Grow Final Flower");
 			EventManager.Instance.PostEvent(EventDefine.GrowFinalFlower , msg );
 			yield break;
 		}else

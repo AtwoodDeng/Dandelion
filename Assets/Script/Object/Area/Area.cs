@@ -15,7 +15,6 @@ public class Area : MonoBehaviour {
 
 	void OnTriggerEnter2D(Collider2D col )
 	{
-		Debug.Log("petal enter" + col.name );
 		Petal petal = col.GetComponent<Petal>();
 		if ( petal != null )
 		{

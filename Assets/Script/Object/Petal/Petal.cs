@@ -119,7 +119,6 @@ public class Petal : MonoBehaviour  {
 
 	virtual public void OnLand(Collision2D coll)
 	{
-		Debug.Log("On Collison");
 		if ( state == PetalState.Fly )
 		{
 			//Change the State of the petal

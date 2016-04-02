@@ -94,16 +94,19 @@ public class EventManager : MonoBehaviour
 	public void PostEvent(EventDefine eventName , Message msg = null , object sender=null)
 	{
 		if (msg == null )
-			msg = new Message();
-		postEventList.Add(new EventInvocation(eventName , msg, sender));
+			postEventList.Add(new EventInvocation(eventName , new Message(), sender));
+		else
+			postEventList.Add(new EventInvocation(eventName , msg, sender));
 	}
 
 	void Update()
 	{
-		for ( int i = postEventList.Count - 1 ; i >= 0 ; -- i )
+		foreach( EventInvocation eventInv in postEventList )
 		{
-			EventInvocation eventInv = postEventList[i];
+			// EventInvocation eventInv = postEventList[i];
 			EventDefine tempEventName = eventInv.m_Name;
+			if ( tempEventName == EventDefine.EndLevel )
+				Debug.Log("Deal End Level");
 			if ( eventDict.ContainsKey( tempEventName ))
 			{
 				foreach(EventHandler handler in eventDict[tempEventName].Keys)
@@ -115,6 +118,10 @@ public class EventManager : MonoBehaviour
 					else
 						msg.SetSender(eventInv.m_sender);
 					msg.SetEventName(eventClass.m_Name);
+
+					if ( tempEventName == EventDefine.EndLevel )
+						Debug.Log("handler " + handler);
+					
 					handler(msg);
 				}
 			}

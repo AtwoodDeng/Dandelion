@@ -19,15 +19,15 @@ public class PointArea : Area {
 
 	void OnEnable()
 	{
-		EventManager.Instance.RegistersEvent(EventDefine.GrowFlowerOn, OnOthersGrowFlower);
+		EventManager.Instance.RegistersEvent(EventDefine.GrowFlowerOn, GrowFlowerOn);
 	}
 
 	void OnDisable()
 	{
-		EventManager.Instance.UnregistersEvent(EventDefine.GrowFlowerOn, OnOthersGrowFlower);
+		EventManager.Instance.UnregistersEvent(EventDefine.GrowFlowerOn, GrowFlowerOn);
 	}
 
-	void OnOthersGrowFlower(Message msg)
+	void GrowFlowerOn(Message msg)
 	{	
 		PetalInfo info = (PetalInfo) msg.GetMessage("info");
 		if ( info.affectPointArea == this )
