@@ -36,7 +36,25 @@ public class Petal3D : Petal {
     [SerializeField] Petal3DWind follow;
 
     Vector3 myUpDiff;
+
+	bool isInited = false;
+
+
+	void Start()
+	{
+		if ( state == PetalState.Init )
+		{
+			Init(null,0);
+			Blow( Global.GetRandomDirection() , 0 , BlowType.Normal );
+			myRotationVelocity = maxRotVel;
+		}
+	}
+
 	public override void Init (Flower _flower, int index) {
+
+		if ( isInited )
+			return;
+		isInited = true;
 
         base.Init(_flower, index);
 
@@ -72,20 +90,22 @@ public class Petal3D : Petal {
 		{
 			float scaleTime = m_grwoDuration * .6f + Random.Range( -0.1f , 0.1f );
 			float bloomTime = m_grwoDuration * .4f + Random.Range( -0.1f , 0.1f );
-			Flower3D f3D = (Flower3D) flower;
-			Vector3 randomAngle = new Vector3(Random.Range(- growScale.x , growScale.x ), Random.Range(-growScale.y, growScale.y), Random.Range(-growScale.z, growScale.z));
+			if ( flower != null )
+			{
+				Flower3D f3D = (Flower3D) flower;
+				Vector3 randomAngle = new Vector3(Random.Range(- growScale.x , growScale.x ), Random.Range(-growScale.y, growScale.y), Random.Range(-growScale.z, growScale.z));
 
-			randomAngle.y = 360f * index / f3D.GetFlowerNum() * 2f  + Random.Range(-7f , 7f );
-			petalModel.transform.localEulerAngles = randomAngle;
+				randomAngle.y = 360f * index / f3D.GetFlowerNum() * 2f  + Random.Range(-7f , 7f );
+				petalModel.transform.localEulerAngles = randomAngle;
 
-			randomAngle.z += -75f + Random.Range( - 8f , 8f );
+				randomAngle.z += -75f + Random.Range( - 8f , 8f );
 
-			if ( index >= f3D.GetFlowerNum() / 2 ) {
-				randomAngle.z += 30f;
-				transform.localScale *= 0.66f;
+				if ( index >= f3D.GetFlowerNum() / 2 ) {
+					randomAngle.z += 30f;
+					transform.localScale *= 0.66f;
+				}
+				petalModel.DORotate( randomAngle , bloomTime ).SetDelay( scaleTime - 0.2f ) ;
 			}
-			petalModel.DORotate( randomAngle , bloomTime ).SetDelay( scaleTime - 0.2f ) ;
-
 //			SpriteRenderer sprite = petalModel.GetComponentInChildren<SpriteRenderer>();
 //			if ( sprite != null )
 //			{
@@ -128,13 +148,12 @@ public class Petal3D : Petal {
 		Vector3 blowDirection = move;
         float blowVelocity = vel * Random.Range(0.75f , 1.25f);
 		Vector3 blowImpulse = ( blowDirection * blowVelocity * blowIntense * 0.001f  );
-		Debug.Log("Blow Impulse before " + blowImpulse);
 		blowImpulse = Vector3.ClampMagnitude(blowImpulse, BlowImpulseRange.max);
-        
+
+
         if ( blowImpulse.magnitude < BlowImpulseRange.min )
             blowImpulse = blowImpulse.normalized * BlowImpulseRange.min;
 		AddImpluse( blowImpulse );
-		Debug.Log("Blow Impulse after " + blowImpulse);
         
         if ( blowType.Equals(BlowType.Normal) )
         {
@@ -150,7 +169,6 @@ public class Petal3D : Petal {
         		c.isTrigger = false;
         	}
 
-			Debug.Log("Blow Normal");
         }
         else if (blowType.Equals(BlowType.FlyAway))
         {
@@ -167,7 +185,6 @@ public class Petal3D : Petal {
 //				render.DOFade( 0 , fadeTime );
 			//			}
 
-			Debug.Log("Blow FlyAway");
         }
 
         follow.windSensablParameter.shouldUpdate = true;
@@ -226,8 +243,8 @@ public class Petal3D : Petal {
             Vector3 myUp = transform.up + myUpDiff;
             
             //Rotate the petal
-            myRotationVelocity = (  Vector3.Cross(myUp, _force).z 
-                                + Vector3.Cross(- myUp , Vector3.down * rotationMass * 0.2f ).z ) / rotationMass;
+            myRotationVelocity += (  Vector3.Cross(myUp, _force).z 
+				+ Vector3.Cross(- myUp , Vector3.down * rotationMass * 0.2f ).z ) / rotationMass * Time.deltaTime;
 
 
 	         // control the velocity
@@ -238,6 +255,7 @@ public class Petal3D : Petal {
 	        // myVelocity *= ( 1f - drag );
 	        myRotationVelocity *= (1f - rotationDrag);
 
+			Debug.Log("MyRotation Velocity " + myRotationVelocity );
     	}
 
     	// rigidbody velocity don't effect;
@@ -252,7 +270,7 @@ public class Petal3D : Petal {
         transform.position += Global.V2ToV3(myVelocity) * dt ;
         transform.Rotate(Vector3.back, myRotationVelocity * dt );
 
-        petalModel.Rotate( petalModelRotateToward * myRotationVelocity * petalModelRotateIntense);
+        petalModel.Rotate( petalModelRotateToward * myRotationVelocity * petalModelRotateIntense * dt * 30f);
 
         //change the scale(z distance)
 		if ( state == PetalState.FlyAway || state == PetalState.FlyAway ) {

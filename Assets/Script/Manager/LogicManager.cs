@@ -27,6 +27,7 @@ public class LogicManager : MonoBehaviour {
 		}
 	}
 
+
 	
 	static GameObject m_level;
 	static public GameObject Level
@@ -59,12 +60,14 @@ public class LogicManager : MonoBehaviour {
 		}
 	}
 		
+
 	void OnEnable()
 	{
 		EventManager.Instance.RegistersEvent(EventDefine.RenewSwipeTime,RenewSwipeTime);
 		EventManager.Instance.RegistersEvent(EventDefine.AddSwipeTime,AddSwipeTime);
 		EventManager.Instance.RegistersEvent(EventDefine.BlowFlower,BlowFlower);
 		EventManager.Instance.RegistersEvent(EventDefine.GrowFinalFlower,GrowFinalFlower);
+		EventManager.Instance.RegistersEvent(EventDefine.AllBlack,AllBlack);
 	}
 
 	void OnDisable()
@@ -73,6 +76,20 @@ public class LogicManager : MonoBehaviour {
 		EventManager.Instance.UnregistersEvent(EventDefine.AddSwipeTime,AddSwipeTime);
 		EventManager.Instance.UnregistersEvent(EventDefine.BlowFlower,BlowFlower);
 		EventManager.Instance.UnregistersEvent(EventDefine.GrowFinalFlower,GrowFinalFlower);
+		EventManager.Instance.UnregistersEvent(EventDefine.AllBlack,AllBlack);
+	}
+
+	void Start()
+	{
+		EventManager.Instance.PostEvent( EventDefine.BeginLevel );
+		if ( LevelManager != null )
+			m_swipeTime = LevelManager.GetBlowTime();
+	}
+
+	void AllBlack( Message msg )
+	{
+		Debug.Log("next level" + Global.NextLevel());
+		Application.LoadLevel( Global.NextLevel());
 	}
 
 	void Update()
@@ -105,11 +122,6 @@ public class LogicManager : MonoBehaviour {
 		m_swipeTime --; 
 	}
 
-	void Start()
-	{
-		if ( LevelManager != null )
-			m_swipeTime = LevelManager.GetBlowTime();
-	}
 
 		
 	void RenewSwipeTime(Message msg)

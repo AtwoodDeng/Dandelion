@@ -12,6 +12,11 @@ public class Flower3D : Flower , WindSensable {
 	[SerializeField] float growDelay = 1f; 
 	[SerializeField] Petal3D[] flowerPetals;
 	[SerializeField] float endBlow = 10f;
+	[SerializeField] AudioSource blowSound;
+	[SerializeField] AudioSource flowerGrowSound;
+	[SerializeField] AudioSource flowerFlyAwaySound;
+	[SerializeField] AudioSource petalGrowSound;
+	[SerializeField] AudioSource stemGrowSound;
 
 	List<SpriteRenderer> leafList = new List<SpriteRenderer>();
 
@@ -65,12 +70,14 @@ public class Flower3D : Flower , WindSensable {
 	IEnumerator BlowAll()
 	{
 		Debug.Log("End level");
-
 		int i = 0 ;
+
+
 		while(true)
 		{
 			if ( petals != null && petals.Count > 0 )
 			{
+
 				int iPetal = i % petals.Count;
 				if ( petals[iPetal].state == PetalState.Link ) {
 					petals[iPetal].Blow( Vector2.up + Global.GetRandomDirection() * 0.6f , Random.Range( 0 , endBlow ) , Petal.BlowType.FlyAway );
@@ -79,6 +86,7 @@ public class Flower3D : Flower , WindSensable {
 
 			if ( flowerPetals != null && flowerPetals.Length > 0 )
 			{
+
 				int iFlower = i % flowerPetals.Length ;
 				if ( flowerPetals[iFlower].state == PetalState.Link ) {
 					flowerPetals[iFlower].Blow( Vector2.up + Global.GetRandomDirection() * 0.6f , Random.Range( 0 , endBlow ) , Petal.BlowType.FlyAway );
@@ -100,6 +108,10 @@ public class Flower3D : Flower , WindSensable {
 
     IEnumerator GrowAfterSetUp()
     {
+		if ( stemGrowSound != null )
+		{
+			stemGrowSound.Play();
+		}
         transform.localScale /= 1000f;
         float timer = 0;
 		while( timer < Mathf.Min(0.1f , growDelay) )
@@ -185,6 +197,7 @@ public class Flower3D : Flower , WindSensable {
             float angleRange = ( - grow3DPara.leafRotateAngleRange.min + grow3DPara.leafRotateAngleRange.max) ;
             float randomeAngle = grow3DPara.leafRotateAngleRange.min + k * angleRange / leafs  + Random.Range(0, angleRange / (leafs-1) );
     		leaf.transform.Rotate(new Vector3(0,0, randomeAngle));
+			leaf.GetComponent<FollowWind>().Init();
     		
     		// set the scale animation
     		// make all the leaf grow in same speed
@@ -222,6 +235,10 @@ public class Flower3D : Flower , WindSensable {
 	{
 		flowerPetals = new Petal3D[num];
 
+		if ( flowerGrowSound != null )
+		{
+			flowerGrowSound.Play();
+		}
 		float maxGrowTime = 0.5f ;
 		for(int i = 0 ; i < num ; ++ i )
 		{
@@ -250,13 +267,24 @@ public class Flower3D : Flower , WindSensable {
 			yield break;
 		}else
 		{
+			if ( flowerFlyAwaySound != null )
+			{
+				flowerFlyAwaySound.Play();
+			}
+
 			for ( int i = 0 ; i < flowerPetals.Length ; ++ i )
 			{
 				flowerPetals[i].Blow( Vector2.right + 0.4f * Global.GetRandomDirection().normalized , 0 , Petal.BlowType.FlyAway );
 				yield return new WaitForSeconds(grow3DPara.flowerPetalUnlinkInterval );
 			}
 
+			if ( petalGrowSound != null )
+			{
+				petalGrowSound.Play();
+			}
+
 			StartCoroutine(GrowPetalCor());
+
 		}
 			
 	}
@@ -268,6 +296,7 @@ public class Flower3D : Flower , WindSensable {
 
 	IEnumerator BlowFlowerPetalsCor()
 	{
+
 		for ( int i = 0 ; i < flowerPetals.Length ; ++ i )
 		{
 			flowerPetals[i].Blow( Global.GetRandomDirection() , 0 , Petal.BlowType.FlyAway );
@@ -290,7 +319,11 @@ public class Flower3D : Flower , WindSensable {
 	{
 		if ( canBlow() )
 		{
-			Debug.Log("Blow " + move + " " + velocity);
+			if ( blowSound != null )
+			{
+				blowSound.Play();
+				blowSound.volume = velocity / 5000f;
+			}
 			base.Blow (move, velocity);
 
 			// make the flower react to the blow

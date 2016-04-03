@@ -19,7 +19,7 @@ public class FollowWindGroup : FollowWind {
 		public float K ;    // 
 	}
 
-	protected override void Init () {
+	override public void Init () {
 		base.Init();
 		datas = new AngleData[ objectList.Length ]; 
 		for( int i= 0 ; i < objectList.Length ; ++ i )

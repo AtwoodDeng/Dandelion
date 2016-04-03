@@ -11,6 +11,7 @@ public class FollowWind : MonoBehaviour , WindSensable {
 	[SerializeField] protected float senseImpuse;
 	[SerializeField] MaxMin swingRange;
 	[SerializeField] protected float controlDrag;
+	[SerializeField] AudioSource touchSound;
 
     protected Vector2 windVelocity = Vector2.zero;
 
@@ -43,6 +44,12 @@ public class FollowWind : MonoBehaviour , WindSensable {
 		float torque = 1e-7f * Vector3.Dot( Vector3.back , Vector3.Cross( radius , m_impuse ));
 		torque *= senseImpuse;
 
+		if ( touchSound != null )
+		{
+			touchSound.volume = torque / senseImpuse;
+			touchSound.Play(); 
+		}
+
 		angleVol += torque;
 	}
 
@@ -51,6 +58,11 @@ public class FollowWind : MonoBehaviour , WindSensable {
         // windSensablParameter.onRender = true;
     	// StartCoroutine(UpdateAnimation());
     }
+
+	void Start()
+	{
+		Init();
+	}
     float timer = 0;
 
     bool isInit = false;
@@ -72,7 +84,7 @@ public class FollowWind : MonoBehaviour , WindSensable {
         UpdateObject();
     }
 
-    virtual protected void Init()
+	virtual public void Init()
     {
             initAngle = Global.StandardizeAngle( transform.eulerAngles.z );
             angleVol = 0;
@@ -96,8 +108,9 @@ public class FollowWind : MonoBehaviour , WindSensable {
 
         float KForce = - offSetAngle * K;
 
-		angleVol += windForce + KForce;
-		angleVol *= drag;
+		angleVol += ( windForce + KForce ) * Time.deltaTime * 30f;
+		if ( Mathf.Abs( offSetAngle ) > swingRange.max / 3f )
+			angleVol *= drag;
 
 		if ( (swingRange.max > 0 && offSetAngle > swingRange.max && angleVol > 0)
 			||  (swingRange.min < 0 && offSetAngle < swingRange.min && angleVol < 0 ) )

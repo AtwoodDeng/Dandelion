@@ -2,13 +2,10 @@
 using System.Collections;
 using DG.Tweening;
 
-public class OnEventExtend : MonoBehaviour {
-
-	[SerializeField] EventDefine senseEvent;
+public class OnEventExtend : OnEvent {
 
 	[SerializeField] bool initZero = true;
 	[SerializeField] float extendToY;
-	[SerializeField] float extendTime = 2f;
 
 	float m_toY;
 	void Awake()
@@ -24,19 +21,10 @@ public class OnEventExtend : MonoBehaviour {
 			m_toY = extendToY;
 		}
 	}
-
-	void OnEnable()
+		
+	override protected void Do(Message msg )
 	{
-		EventManager.Instance.RegistersEvent(senseEvent, OnEvent);
+		transform.DOScaleY( m_toY , time ).SetDelay(delay).SetEase(easeType);
 	}
 
-	void OnDisable()
-	{
-		EventManager.Instance.UnregistersEvent(senseEvent, OnEvent);
-	}
-
-	void OnEvent(Message msg )
-	{
-		transform.DOScaleY( m_toY , extendTime );
-	}
 }

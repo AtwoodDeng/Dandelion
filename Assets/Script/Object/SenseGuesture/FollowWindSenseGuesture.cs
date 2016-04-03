@@ -19,7 +19,8 @@ public class FollowWindSenseGuesture : SenseGuesture {
 			Vector3 touchPosition = Camera.main.ScreenToWorldPoint( guesture.StartPosition );
 			touchPosition.z = transform.position.z;
 			float velocity = Mathf.Clamp( guesture.Velocity , velocityRange.min , velocityRange.max );
-			Debug.Log(guesture.Velocity);
+
+
 			followWind.AddImpuse( Global.V2ToV3(guesture.Move) * velocity
 				, touchPosition  );
 		}

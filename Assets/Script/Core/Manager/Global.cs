@@ -46,6 +46,23 @@ public class Global {
 	static public int WIND_BACK_ORDER 			= -30;
 
 	static public float WIND_UI_Z = 2f;
+
+	static string[] levelNames =
+	{
+		"lvl1",
+		"lvl1",
+
+	};
+
+	static public string NextLevel()
+	{
+		string nowLevel = Application.loadedLevelName;
+		int i = 0 ;
+		while( i < levelNames.Length && levelNames[i] != nowLevel )
+			i ++;
+		return levelNames[(i+1) % levelNames.Length];
+
+	}
 }
 
 [System.SerializableAttribute]
@@ -72,6 +89,7 @@ public enum PetalState
 	Fly,
 	Land,
 	FlyAway,
+	Init,
 }
 [System.SerializableAttribute]
 public struct WindSensablParameter

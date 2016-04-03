@@ -3,6 +3,8 @@ public enum EventDefine
 {
 	None,
 
+	BeginLevel,
+
 	EnterFinal,
 	RenewSwipeTime,
 	AddSwipeTime,
@@ -14,4 +16,6 @@ public enum EventDefine
 	GrowFinalFlower,
 
 	EndLevel,
+
+	AllBlack,
 }

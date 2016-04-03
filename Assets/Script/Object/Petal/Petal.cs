@@ -54,7 +54,10 @@ public class Petal : MonoBehaviour  {
 
 	public virtual void Grow( int index )
 	{
-		transform.localRotation = Quaternion.EulerAngles(new Vector3(0,0, 2f * Mathf.PI * index / flower.petalNum));
+		float rotation = 0.5f;
+		if ( flower != null )
+			rotation = index / flower.petalNum;
+		transform.localRotation = Quaternion.EulerAngles(new Vector3(0,0, 2f * Mathf.PI * rotation));
 
 	}
 
@@ -119,8 +122,11 @@ public class Petal : MonoBehaviour  {
 
 	virtual public void OnLand(Collision2D coll)
 	{
+
+		Debug.Log("On Land");
 		if ( state == PetalState.Fly )
 		{
+			
 			//Change the State of the petal
 			state = PetalState.Land;
 			//Grow a new flower on the collision point
