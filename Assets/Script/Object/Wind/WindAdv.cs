@@ -630,7 +630,6 @@ public class WindAdv : MonoBehaviour {
 			{
 				ranPos = new Vector3 ( Random.Range( - Size.x / 2 , Size.x / 2 ) , Random.Range( - Size.y / 2 , Size.y / 2 ) , 0 );
 			}
-			WindTests[i].gameObject.SetActive(true);
 			WindTests[i].Enter(ranPos);
 		}
 	}
@@ -652,10 +651,11 @@ public class WindAdv : MonoBehaviour {
 
 	public void HideUI()
 	{
-		windBackUI.DOFade( 0f , 2f ).SetEase(Ease.InExpo);
+		windBackUI.DOFade( 0f , 2f ).SetEase(Ease.Linear);
 
 		for ( int i = 0 ; i < windTestNum ; ++ i )
 		{
+			
 			WindTests[i].Exit();
 		}
 

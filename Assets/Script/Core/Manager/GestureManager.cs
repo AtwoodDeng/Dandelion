@@ -31,6 +31,22 @@ public class GestureManager : MonoBehaviour {
 
     }
 
+	void OnTap( TapGesture gesture )
+	{
+		Debug.Log("On Tap");
+		// make sure we started the swipe gesture on our swipe object
+		GameObject selection = gesture.StartSelection;  // we use the object the swipe started on, instead of the current one
+
+		if (selection == null )
+			return;
+
+		Debug.Log("on select " + selection.name);
+		SenseGuesture sense = selection.GetComponent<SenseGuesture>();
+		if ( sense != null )
+			sense.DealTap( gesture );
+		
+	}
+
 
 
 }

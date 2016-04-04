@@ -12,6 +12,7 @@ public class WindTest : MonoBehaviour , WindSensable {
 	[SerializeField] float fadeTimeDiff= 0.3f;
 	public WindAdv wind;
 	[SerializeField] GameObject model;
+	[SerializeField] SpriteRenderer sprite;
 
 	public enum State
 	{
@@ -48,6 +49,9 @@ public class WindTest : MonoBehaviour , WindSensable {
 	public void Awake()
 	{
 		rotateToward = Global.GetRandomDirectionV3();
+		if ( sprite == null )
+			sprite = GetComponentInChildren<SpriteRenderer>();
+
 	}
 
 	public void Update()
@@ -61,25 +65,32 @@ public class WindTest : MonoBehaviour , WindSensable {
 
 	public void Enter(Vector3 pos )
 	{
+		gameObject.SetActive(true);
 		StartCoroutine(DoEnter(pos));
 	}
 	IEnumerator DoEnter(Vector3 pos)
 	{
-		transform.localScale = Vector3.zero;
+		// transform.localScale = Vector3.zero;
 		transform.rotation = Random.rotation;
+		sprite.DOFade(0,0);
 
 		yield return new WaitForSeconds( Random.Range( 0, fadeTimeDiff));
 
 		state = State.Enter;
-		float scale = ( wind.GetSize().x + wind.GetSize().y ) * Random.Range( 1f , 2f );
-		Vector3 oriPos = ( pos - wind.transform.position ).normalized * scale;
-		oriPos.z = -20f;
 
-		transform.position = oriPos;
-		transform.localScale = Vector3.one;
-		float delay = Random.Range( 0 , fadeTimeDiff );
-		transform.DOMove( pos , fadeTime ).OnComplete(BeginMove).SetEase(Ease.OutExpo);
-		transform.DOScale( scale / 2f , fadeTime ).From().SetEase(Ease.OutExpo);
+		BeginMove();
+		sprite.DOFade( 1f , fadeTime );
+		transform.position = pos;
+
+//		float scale = ( wind.GetSize().x + wind.GetSize().y ) * Random.Range( 1f , 2f );
+//		Vector3 oriPos = ( pos - wind.transform.position ).normalized * scale;
+//		oriPos.z = -20f;
+//
+//		transform.position = oriPos;
+//		transform.localScale = Vector3.one;
+//		float delay = Random.Range( 0 , fadeTimeDiff );
+//		transform.DOMove( pos , fadeTime ).OnComplete(BeginMove).SetEase(Ease.OutExpo);
+//		transform.DOScale( scale / 2f , fadeTime ).From().SetEase(Ease.OutExpo);
 
 	}
 
@@ -98,14 +109,23 @@ public class WindTest : MonoBehaviour , WindSensable {
 	{
 		yield return new WaitForSeconds( Random.Range( 0, fadeTimeDiff));
 
-		state = State.Exit;
-		float scale = ( wind.GetSize().x + wind.GetSize().y ) * Random.Range( 1f , 2f );
-		Vector3 fadePos = ( transform.position - wind.transform.position ).normalized * scale;
-		fadePos.z = -20f;
-		float delay = Random.Range( 0 , fadeTimeDiff );
-		transform.DOMove( fadePos , fadeTime ).OnComplete(RealExit).SetEase(Ease.InExpo);
+		sprite.DOFade( 0f , fadeTime ).OnComplete(RealExit2);
 
-		transform.DOScale( scale / 2f , fadeTime ).SetEase(Ease.InExpo);
+//		float scale = ( wind.GetSize().x + wind.GetSize().y ) * Random.Range( 1f , 2f );
+//		Vector3 fadePos = ( transform.position - wind.transform.position ).normalized * scale;
+//		fadePos.z = -20f;
+//		float delay = Random.Range( 0 , fadeTimeDiff );
+//		transform.DOMove( fadePos , fadeTime ).OnComplete(RealExit).SetEase(Ease.InExpo);
+//
+//		transform.DOScale( scale / 2f , fadeTime ).SetEase(Ease.InExpo);
+	}
+
+	void RealExit2()
+	{
+		state = State.Exit;
+		state = State.Invisible;
+		windSensablParameter.shouldUpdate = false;
+		gameObject.SetActive(false);
 	}
 
 	void RealExit()
@@ -120,7 +140,7 @@ public class WindTest : MonoBehaviour , WindSensable {
 		
 		// update velocity
 		velocity += windVelocity * WindVelSense * Time.deltaTime * 30f ;
-		velocity = Vector2.ClampMagnitude( velocity , maxVel );
+		velocity = Vector2.ClampMagnitude( velocity , maxVel * ( 1f + windVelocity.magnitude / 2f ) );
 		velocity *= 0.98f;
 
 		rotateVel += Vector3.Cross(transform.up, windVelocity * WindRotateSense ).z * Time.deltaTime * 30f;

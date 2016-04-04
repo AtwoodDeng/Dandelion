@@ -15,6 +15,7 @@ public class CameraManager : MonoBehaviour {
 
 	public Vector3 frame;
 	public Vector3 frameOffset;
+	public Vector3 initPos = Vector3.zero;
 	public float senseIntense = 0.2f;
 
 	[SerializeField] float EndFadeSize = 10f;
@@ -40,12 +41,13 @@ public class CameraManager : MonoBehaviour {
 		{
 			c.DOOrthoSize( EndFadeSize , EndFadeTime ).SetDelay( EndFadeDelay );
 		}
+		transform.DOMove( Global.CAMERA_INIT_POSITION , EndFadeTime ).SetDelay(EndFadeDelay);
 	}
 
 	void Awake()
 	{
-		
-		// offset = Vector3.zero;
+		initPos.z = Global.CAMERA_INIT_POSITION.z;
+		transform.position = initPos;
 	}
 
 	void Update () {
@@ -73,11 +75,7 @@ public class CameraManager : MonoBehaviour {
 
 //	 	transform.position = transform.position + move;
 	}
-
-
-
-
-
+		
 	void OnFingerMove( FingerMotionEvent e )
 	{
 		if ( enabled )
@@ -112,5 +110,12 @@ public class CameraManager : MonoBehaviour {
 		accesableSize.y += frame.y ;
 
 		Gizmos.DrawWireCube( transform.position + frameOffset , accesableSize );
+
+		Gizmos.color = new Color( 1f ,  0.5f , 0.5f );
+
+		Vector3 initFrame = initPos;
+		initFrame.z = Global.CAMERA_INIT_POSITION.z;
+		Gizmos.DrawWireCube( initFrame , accessBotLeft - accessTopRight );
+
 	}
 }

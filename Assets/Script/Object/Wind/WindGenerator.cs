@@ -24,10 +24,11 @@ public class WindGenerator : MonoBehaviour {
 	{
 		return GetDirection() * strength;
 	}
-	void OnDrawGizmos()
+	void OnDrawGizmosSelected()
 	{
 		Gizmos.color = Color.yellow;
 		Gizmos.DrawWireCube(transform.position, Size);
-		Gizmos.DrawLine(transform.position, transform.position + GetDirection() * strength * 0.1f );
+		Gizmos.DrawLine(transform.position, transform.position + GetDirection() * strength * 0.5f );
+		Gizmos.DrawWireSphere( transform.position + GetDirection() * strength * 0.5f , 0.33f );
 	}
 }

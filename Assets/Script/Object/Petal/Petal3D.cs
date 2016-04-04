@@ -254,8 +254,6 @@ public class Petal3D : Petal {
 	        // drag the velocity
 	        // myVelocity *= ( 1f - drag );
 	        myRotationVelocity *= (1f - rotationDrag);
-
-			Debug.Log("MyRotation Velocity " + myRotationVelocity );
     	}
 
     	// rigidbody velocity don't effect;

@@ -6,4 +6,8 @@ public class SenseGuesture : MonoBehaviour {
 	public virtual void DealSwipe( SwipeGesture guesture )
 	{
 	}
+
+	public virtual void DealTap( TapGesture guesture )
+	{
+	}
 }

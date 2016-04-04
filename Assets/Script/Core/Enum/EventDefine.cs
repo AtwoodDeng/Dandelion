@@ -6,7 +6,9 @@ public enum EventDefine
 	BeginLevel,
 
 	EnterFinal,
+
 	RenewSwipeTime,
+
 	AddSwipeTime,
 
 	BlowFlower,
@@ -17,5 +19,10 @@ public enum EventDefine
 
 	EndLevel,
 
-	AllBlack,
+	AllBlackEndLevel,
+
+	Retry,
+
+	AllBlackRetry,
+
 }

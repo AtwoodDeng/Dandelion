@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class LevelManager : MonoBehaviour {
-	[SerializeField] GameObject level;
-	[SerializeField] int blowTime;
-	[SerializeField] List<PointArea> pointAreas = new List<PointArea>();
-	[SerializeField] WindAdv wind;
+	[SerializeField] protected GameObject level;
+	[SerializeField] protected int blowTime = 999;
+	[SerializeField] protected List<PointArea> pointAreas = new List<PointArea>();
+	[SerializeField] protected WindAdv wind;
 
 
 	virtual public GameObject GetLevelObject()
@@ -54,5 +54,10 @@ public class LevelManager : MonoBehaviour {
 	virtual public int GetBlowTime()
 	{
 		return blowTime;
+	}
+
+	virtual public int GetEvaluation()
+	{
+		return 3;
 	}
 }

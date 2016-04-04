@@ -67,7 +67,8 @@ public class LogicManager : MonoBehaviour {
 		EventManager.Instance.RegistersEvent(EventDefine.AddSwipeTime,AddSwipeTime);
 		EventManager.Instance.RegistersEvent(EventDefine.BlowFlower,BlowFlower);
 		EventManager.Instance.RegistersEvent(EventDefine.GrowFinalFlower,GrowFinalFlower);
-		EventManager.Instance.RegistersEvent(EventDefine.AllBlack,AllBlack);
+		EventManager.Instance.RegistersEvent(EventDefine.AllBlackEndLevel,AllBlackEndLevel);
+		EventManager.Instance.RegistersEvent(EventDefine.AllBlackRetry,AllBlackRetry);
 	}
 
 	void OnDisable()
@@ -76,7 +77,8 @@ public class LogicManager : MonoBehaviour {
 		EventManager.Instance.UnregistersEvent(EventDefine.AddSwipeTime,AddSwipeTime);
 		EventManager.Instance.UnregistersEvent(EventDefine.BlowFlower,BlowFlower);
 		EventManager.Instance.UnregistersEvent(EventDefine.GrowFinalFlower,GrowFinalFlower);
-		EventManager.Instance.UnregistersEvent(EventDefine.AllBlack,AllBlack);
+		EventManager.Instance.UnregistersEvent(EventDefine.AllBlackEndLevel,AllBlackEndLevel);
+		EventManager.Instance.UnregistersEvent(EventDefine.AllBlackRetry,AllBlackRetry);
 	}
 
 	void Start()
@@ -84,12 +86,26 @@ public class LogicManager : MonoBehaviour {
 		EventManager.Instance.PostEvent( EventDefine.BeginLevel );
 		if ( LevelManager != null )
 			m_swipeTime = LevelManager.GetBlowTime();
+		GameObject bgm = GameObject.FindGameObjectWithTag("BGM");
+		if ( bgm == null )
+		{
+			bgm = Instantiate( Resources.Load(Global.BGM_PATH) ) as GameObject;
+
+		}
+		if ( bgm != null )
+		{
+			DontDestroyOnLoad( bgm );
+		}
 	}
 
-	void AllBlack( Message msg )
+	void AllBlackEndLevel( Message msg )
 	{
-		Debug.Log("next level" + Global.NextLevel());
 		Application.LoadLevel( Global.NextLevel());
+	}
+
+	void AllBlackRetry( Message msg )
+	{
+		Application.LoadLevel( Application.loadedLevel );
 	}
 
 	void Update()
@@ -134,4 +150,5 @@ public class LogicManager : MonoBehaviour {
 	{
 		m_swipeTime ++;
 	}
+		
 }

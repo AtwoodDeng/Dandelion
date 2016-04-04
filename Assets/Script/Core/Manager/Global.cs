@@ -50,7 +50,11 @@ public class Global {
 	static string[] levelNames =
 	{
 		"lvl1",
-		"lvl1",
+		"lvl1-2",
+		"lvl1-3",
+		"lvl1-4",
+		"lvl1-5",
+		"lvl2",
 
 	};
 
@@ -63,6 +67,10 @@ public class Global {
 		return levelNames[(i+1) % levelNames.Length];
 
 	}
+
+	static public string BGM_PATH = "Prefab/System/BGM";
+
+	static public Vector3 CAMERA_INIT_POSITION = new Vector3( 0  , 0 , -10f);
 }
 
 [System.SerializableAttribute]
