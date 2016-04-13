@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class LogicManager : MonoBehaviour {
 
@@ -27,6 +28,25 @@ public class LogicManager : MonoBehaviour {
 		}
 	}
 
+	static CameraManager m_cameraManager;
+	static public CameraManager CameraManager
+	{
+		get {
+			if ( m_cameraManager != null )
+				return m_cameraManager;
+
+			if ( Instance != null )
+				m_cameraManager = Instance.GetComponent<CameraManager>();
+
+			if ( m_cameraManager == null && Camera.main != null )
+			{
+				m_cameraManager = Camera.main.GetComponent<CameraManager>();
+			}
+
+			return m_cameraManager;
+		}
+	}
+
 
 	
 	static GameObject m_level;
@@ -43,6 +63,45 @@ public class LogicManager : MonoBehaviour {
 				m_level = GameObject.Find("level");
 				
 			return m_level;
+		}
+	}
+
+	static float m_animTimeRate = 1f;
+	[SerializeField] float IAnimTimeRate = 1f;
+	static public float AnimTimeRate
+	{
+		get {
+			if ( Instance != null )
+			{
+				m_animTimeRate = Instance.IAnimTimeRate;
+			}
+			return m_animTimeRate;
+		}
+	}
+
+	static float m_physTimeRate = 1f;
+	[SerializeField] float IPhysTimeRate = 1f;
+	static public float PhysTimeRate
+	{
+		get {
+			if ( Instance != null )
+			{
+				m_physTimeRate = Instance.IPhysTimeRate;
+			}
+			return m_physTimeRate;
+		}
+	}
+
+	static float m_UITimeRate = 1f;
+	[SerializeField] float IUITimeRate = 1f;
+	static public float UITimeRate
+	{
+		get {
+			if ( Instance != null )
+			{
+				m_UITimeRate = Instance.IUITimeRate;
+			}
+			return m_UITimeRate;
 		}
 	}
 
@@ -100,12 +159,16 @@ public class LogicManager : MonoBehaviour {
 
 	void AllBlackEndLevel( Message msg )
 	{
+		Debug.Log("Now " + SceneManager.GetActiveScene().name);
+		Debug.Log("Next " + Global.NextLevel());
+		// SceneManager.LoadScene( SceneManager.GetSceneByName( Global.NextLevel()).buildIndex );
 		Application.LoadLevel( Global.NextLevel());
 	}
 
 	void AllBlackRetry( Message msg )
 	{
-		Application.LoadLevel( Application.loadedLevel );
+//		SceneManager.LoadScene( SceneManager.GetActiveScene().buildIndex );
+		Application.LoadLevel( Application.loadedLevelName );
 	}
 
 	void Update()
@@ -131,14 +194,10 @@ public class LogicManager : MonoBehaviour {
 		}
 	}
 
-
-
 	void BlowFlower( Message msg )
 	{
 		m_swipeTime --; 
 	}
-
-
 		
 	void RenewSwipeTime(Message msg)
 	{

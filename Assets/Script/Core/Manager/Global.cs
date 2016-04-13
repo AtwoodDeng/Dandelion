@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class Global {
 
@@ -45,22 +46,19 @@ public class Global {
 	static public int WIND_ARROW_ORDER 			= -25;
 	static public int WIND_BACK_ORDER 			= -30;
 
-	static public float WIND_UI_Z = 2f;
+	static public float WIND_UI_Z = 0f;
 
 	static string[] levelNames =
 	{
 		"lvl1",
-		"lvl1-2",
 		"lvl1-3",
-		"lvl1-4",
-		"lvl1-5",
-		"lvl2",
+		"lvl1-2",
 
 	};
 
 	static public string NextLevel()
 	{
-		string nowLevel = Application.loadedLevelName;
+		string nowLevel = SceneManager.GetActiveScene().name;
 		int i = 0 ;
 		while( i < levelNames.Length && levelNames[i] != nowLevel )
 			i ++;
@@ -71,6 +69,25 @@ public class Global {
 	static public string BGM_PATH = "Prefab/System/BGM";
 
 	static public Vector3 CAMERA_INIT_POSITION = new Vector3( 0  , 0 , -10f);
+
+	static float m_pixel2Unit = -1f;
+	static public float Pixel2Unit
+	{
+		get {
+			if ( m_pixel2Unit > 0 )
+				return m_pixel2Unit;
+			
+			if ( Camera.main != null )
+			{
+				Vector3 zero = Camera.main.ScreenToWorldPoint( new Vector3( 0 , 0 , 0 ));
+				Vector3 one = Camera.main.ScreenToWorldPoint( new Vector3( 1f , 0 , 0 ));
+				m_pixel2Unit = ( one.x - zero.x ) / 1f ;
+			}
+			else
+				return 0.01f;
+			return m_pixel2Unit;
+		}
+	}
 }
 
 [System.SerializableAttribute]

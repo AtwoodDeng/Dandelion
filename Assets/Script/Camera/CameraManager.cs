@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using DG.Tweening;
+using System.Collections.Generic;
 
 public class CameraManager : MonoBehaviour {
 
@@ -12,6 +13,8 @@ public class CameraManager : MonoBehaviour {
 //	public float Boundary = 0.1f;
 //	public float speed = 5f;
 
+	[SerializeField] GameObject inkPrefab;
+	Dictionary<int,Ink> inkDict = new Dictionary<int, Ink>(); // key (int) for finger Index; Ink for the sprite corresponse
 
 	public Vector3 frame;
 	public Vector3 frameOffset;
@@ -22,18 +25,34 @@ public class CameraManager : MonoBehaviour {
 	[SerializeField] float EndFadeTime = 2f;
 	[SerializeField] float EndFadeDelay = 0;
 
+	public Vector3 OffsetFromInit{
+		get {
+			return  transform.position - initPos;
+		}
+	}
+
+	bool canMove = false;
+
 	void OnEnable()
 	{
+		EventManager.Instance.RegistersEvent(EventDefine.GrowFirstFlower, OnFirstFlower);
 		EventManager.Instance.RegistersEvent(EventDefine.EndLevel, OnEndLevel);
 	}
 
 	void OnDisable()
 	{
 		EventManager.Instance.UnregistersEvent(EventDefine.EndLevel, OnEndLevel);
+		EventManager.Instance.UnregistersEvent(EventDefine.GrowFirstFlower, OnFirstFlower);
+	}
+
+	void OnFirstFlower( Message msg )
+	{
+		canMove = true;
 	}
 
 	void OnEndLevel(Message msg )
 	{
+		canMove = false;
 		//fade This
 		GetComponent<Camera>().DOOrthoSize( EndFadeSize , EndFadeTime ).SetDelay( EndFadeDelay );
 		Camera[] childCameras = GetComponentsInChildren<Camera>();
@@ -43,6 +62,8 @@ public class CameraManager : MonoBehaviour {
 		}
 		transform.DOMove( Global.CAMERA_INIT_POSITION , EndFadeTime ).SetDelay(EndFadeDelay);
 	}
+
+
 
 	void Awake()
 	{
@@ -75,15 +96,37 @@ public class CameraManager : MonoBehaviour {
 
 //	 	transform.position = transform.position + move;
 	}
-		
-	void OnFingerMove( FingerMotionEvent e )
+
+	void OnDoubleTapBack( TapGesture g )
 	{
-		if ( enabled )
+		WindAdv wind = LogicManager.LevelManager.GetWind();
+		wind.UISwitch();
+
+	}
+		
+	void OnFingerMoveBack( FingerMotionEvent e )
+	{
+		if ( enabled && canMove )
 		{
-			if ( e.Phase == FingerMotionPhase.Updated && e.Finger.Index == 1 )
+			
+			bool check = false;
+
+			switch( Application.platform )
 			{
+			case RuntimePlatform.Android:
+			case RuntimePlatform.IPhonePlayer:
+				check = FingerGestures.Touches.Count >= 2;
+				break;
+			default :
+				check = e.Finger.Index >= 1;
+				break;
+			}
+
+			if ( check )
+			{
+				if ( e.Phase == FingerMotionPhase.Updated )
 				{
-					Vector3 center = Camera.main.ScreenToWorldPoint( new Vector3( Screen.width / 2 , Screen.height /2  ) );
+					// Vector3 center = Camera.main.ScreenToWorldPoint( new Vector3( Screen.width / 2 , Screen.height /2  ) );
 
 					Vector3 pos = transform.position;
 					// move the camera
@@ -93,15 +136,86 @@ public class CameraManager : MonoBehaviour {
 					pos.y = Mathf.Clamp( pos.y , frameOffset.y - frame.y / 2f ,  frameOffset.y + frame.y / 2f );
 
 					transform.position = pos;
+				}else if ( e.Phase == FingerMotionPhase.Ended )
+				{
+					Debug.Log("End and Update wind");
+					LogicManager.LevelManager.GetWind().StartUpdateWind();
 				}
-
 			}
+
+		}
+	}
+
+	void OnFingerStationaryBack( FingerMotionEvent e )
+	{
+		if ( e.Phase == FingerMotionPhase.Updated )
+		{
+
+			if ( inkDict.ContainsKey( e.Finger.Index ) && inkDict[e.Finger.Index] != null)
+			{
+				if ( e.Finger.DistanceFromStart < inkDict[e.Finger.Index].affectRange() ) {
+					inkDict[e.Finger.Index].Spread(Time.deltaTime);
+				}
+				else {
+					inkDict[e.Finger.Index].Fade();
+					inkDict[e.Finger.Index] = null;
+				}	
+			}
+		}
+	}
+
+	void OnFingerDownBack( FingerDownEvent e )
+	{
+		GameObject selection = e.Selection;
+		if ( e.Finger.Phase == FingerGestures.FingerPhase.Begin )
+		{
+			GameObject ink = Instantiate ( inkPrefab ) as GameObject;
+			ink.transform.parent = LogicManager.LevelManager.GetLevelObject().transform;
+			Vector3 pos = Camera.main.ScreenToWorldPoint( e.Position );
+			pos .z = 0;
+			ink.transform.position = pos;
+
+			Ink inkCom = ink.GetComponent<Ink>();
+
+			if ( inkDict.ContainsKey( e.Finger.Index ))
+			{
+				if (  inkDict[e.Finger.Index] != null )
+					inkDict[e.Finger.Index].Fade();
+				inkDict[e.Finger.Index] = inkCom;
+			}
+			else
+				inkDict.Add( e.Finger.Index , inkCom );
+		}
+
+	}
+
+	void OnFingerUpBack( FingerUpEvent e )
+	{
+		if ( inkDict.ContainsKey( e.Finger.Index ) && inkDict[e.Finger.Index] != null)
+		{
+			inkDict[e.Finger.Index].Fade();
+			inkDict[e.Finger.Index] = null;
+		}
+	}
+
+	void OnFingerHoverBack( FingerHoverEvent e )
+	{
+		if ( inkDict.ContainsKey( e.Finger.Index ) && inkDict[e.Finger.Index] != null)
+		{
+			if ( e.Finger.DistanceFromStart < inkDict[e.Finger.Index].affectRange() ) {
+				inkDict[e.Finger.Index].Spread(Time.deltaTime);
+			}
+			else {
+				inkDict[e.Finger.Index].Fade();
+				inkDict[e.Finger.Index] = null;
+			}	
 		}
 	}
 
 	void OnDrawGizmosSelected()
 	{
 		Gizmos.color = Color.red;
+
 
 		Vector3 accessTopRight = Camera.main.ScreenToWorldPoint( Vector3.zero );
 		Vector3 accessBotLeft = Camera.main.ScreenToWorldPoint( new Vector3( Screen.width , Screen.height ));

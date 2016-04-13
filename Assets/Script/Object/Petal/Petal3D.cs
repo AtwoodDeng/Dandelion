@@ -6,11 +6,10 @@ public class Petal3D : Petal {
 
     [SerializeField] float mass=12f;
     [SerializeField] float rotationMass=0.001f;
-    [SerializeField] float blowIntense=0.003f;
+    [SerializeField] float blowIntense=0.33f;
     [SerializeField] float scaleIntense = 0.01f;
     [SerializeField] float drag = 0.08f;
     [SerializeField] float rotationDrag = 0.05f;
-    // [SerializeField] float raiseK = 1f;
     [SerializeField] float gravity = 0.003f;
     [SerializeField] float maxVel = 0.7f;
     [SerializeField] float maxRotVel = 0.66f;
@@ -45,7 +44,7 @@ public class Petal3D : Petal {
 		if ( state == PetalState.Init )
 		{
 			Init(null,0);
-			Blow( Global.GetRandomDirection() , 0 , BlowType.Normal );
+			// Blow( Global.GetRandomDirection() , 0 , BlowType.Normal );
 			myRotationVelocity = maxRotVel;
 		}
 	}
@@ -79,6 +78,11 @@ public class Petal3D : Petal {
         // the up force intense is different because of diff shape
         upForceIntense *= Random.Range(0.5f, 2f);
 
+		if ( state == PetalState.Init )
+		{
+			SetColliderTrigger( false );
+		}
+
      }
 
 	float m_grwoDuration = 0;
@@ -88,8 +92,8 @@ public class Petal3D : Petal {
 		m_grwoDuration = Random.Range(growTime.min, growTime.max);
 		if ( isFlowerPetal )
 		{
-			float scaleTime = m_grwoDuration * .6f + Random.Range( -0.1f , 0.1f );
-			float bloomTime = m_grwoDuration * .4f + Random.Range( -0.1f , 0.1f );
+			float scaleTime = GetGrowTime() * .6f + Random.Range( -0.1f , 0.1f ) ;
+			float bloomTime = GetGrowTime() * .4f + Random.Range( -0.1f , 0.1f ) ;
 			if ( flower != null )
 			{
 				Flower3D f3D = (Flower3D) flower;
@@ -122,9 +126,9 @@ public class Petal3D : Petal {
 
 			Vector3 scale = petalModel.transform.localScale;
 			petalModel.transform.localScale = scale * 0.01f;
-			petalModel.transform.DOScale(scale , m_grwoDuration);
+			petalModel.transform.DOScale(scale , GetGrowTime() );
 
-			petalModel.DORotate( randomAngle , m_grwoDuration );
+			petalModel.DORotate( randomAngle , GetGrowTime() );
 		}
     }
 
@@ -142,32 +146,45 @@ public class Petal3D : Petal {
         myForce = tem;
 
     }
+
+	public void LinkVelocity( Vector2 vel )
+	{
+		myVelocity = vel;
+		UpdateVelocity(0);
+	}
+
+	void SetColliderTrigger(bool to )
+	{
+		Collider2D[] colliders = GetComponents<Collider2D>();
+		foreach(Collider2D c in colliders)
+		{
+			c.isTrigger = to;
+		}
+
+		colliders = GetComponentsInChildren<Collider2D>();
+		foreach(Collider2D c in colliders)
+		{
+			c.isTrigger = to;
+		}
+	}
     
     public override void Blow (Vector2 move, float vel , BlowType blowType = BlowType.Normal) {
 		base.Blow(move, vel , blowType );
-		Vector3 blowDirection = move;
-        float blowVelocity = vel * Random.Range(0.75f , 1.25f);
-		Vector3 blowImpulse = ( blowDirection * blowVelocity * blowIntense * 0.001f  );
-		blowImpulse = Vector3.ClampMagnitude(blowImpulse, BlowImpulseRange.max);
 
+//		Vector3 blowDirection = move;
+//        float blowVelocity = vel * Random.Range(0.75f , 1.25f);
+//		Vector3 blowImpulse = ( blowDirection * blowVelocity * blowIntense * 0.001f  );
+//		blowImpulse = Vector3.ClampMagnitude(blowImpulse, BlowImpulseRange.max);
+//
+//
+//        if ( blowImpulse.magnitude < BlowImpulseRange.min )
+//            blowImpulse = blowImpulse.normalized * BlowImpulseRange.min;
+//		AddImpluse( blowImpulse );
 
-        if ( blowImpulse.magnitude < BlowImpulseRange.min )
-            blowImpulse = blowImpulse.normalized * BlowImpulseRange.min;
-		AddImpluse( blowImpulse );
         
         if ( blowType.Equals(BlowType.Normal) )
         {
-        	Collider2D[] colliders = GetComponents<Collider2D>();
-        	foreach(Collider2D c in colliders)
-        	{
-        		c.isTrigger = false;
-        	}
-
-        	colliders = GetComponentsInChildren<Collider2D>();
-        	foreach(Collider2D c in colliders)
-        	{
-        		c.isTrigger = false;
-        	}
+			SetColliderTrigger( false );
 
         }
         else if (blowType.Equals(BlowType.FlyAway))
@@ -187,7 +204,12 @@ public class Petal3D : Petal {
 
         }
 
+		// update the velocity
+		LinkVelocity( move * vel * blowIntense );
+
+		// link to the wind 
         follow.windSensablParameter.shouldUpdate = true;
+
     }
 
     //Chaos
@@ -219,32 +241,33 @@ public class Petal3D : Petal {
         // add chaos to force
         // myForce += chaosForce;
 
+		float edt = dt * LogicManager.PhysTimeRate;
+
         //do nothing if the petal is still link to the flower
-        if (state == PetalState.Link)
+		if (state == PetalState.Link || state == PetalState.Land)
         {
             myVelocity = Vector3.zero;
             myRotationVelocity = 0;
-            petalModel.Rotate( petalModelRotateToward * petalModelLinkIntense * Mathf.Sin( petalModelLinkInterval * Time.time + petalModelLinkInit) );
+			petalModel.Rotate( petalModelRotateToward * petalModelLinkIntense * Mathf.Sin( petalModelLinkInterval * Time.time + petalModelLinkInit) * edt * 30f );
         }
 
-        else if (state == PetalState.Fly || state == PetalState.FlyAway)
+		else if (state == PetalState.Fly || state == PetalState.FlyAway || state == PetalState.Init)
         {
             // update the velocity
-            Vector2 _force = myForce / mass * dt - new Vector2(0,gravity);
+            Vector2 _force = myForce / mass - new Vector2(0,gravity);
             // up force
-            _force += Mathf.Pow( myVelocity.x , 2f ) * upForceIntense * Vector2.up * Time.deltaTime;
+            _force += Mathf.Pow( myVelocity.x , 2f ) * upForceIntense * Vector2.up ;
             // drag force
-            _force -= drag * myVelocity * Mathf.Pow( myVelocity.magnitude , 2f ) * Time.deltaTime;
+            _force -= drag * myVelocity * Mathf.Pow( myVelocity.magnitude , 2f ) ;
  
 
-            myVelocity += _force;
-            // Debug.Log("My force " + myForce + " " + _force + " " + myVelocity);
+			myVelocity += _force * edt / mass ;
 
             Vector3 myUp = transform.up + myUpDiff;
             
             //Rotate the petal
             myRotationVelocity += (  Vector3.Cross(myUp, _force).z 
-				+ Vector3.Cross(- myUp , Vector3.down * rotationMass * 0.2f ).z ) / rotationMass * Time.deltaTime;
+				+ Vector3.Cross(- myUp , Vector3.down * rotationMass * 0.2f ).z ) / rotationMass * edt;
 
 
 	         // control the velocity
@@ -264,14 +287,15 @@ public class Petal3D : Petal {
 
     void UpdatePosition(float dt )
     {
+		float edt = dt * LogicManager.PhysTimeRate;
         // update the position and rotation
-        transform.position += Global.V2ToV3(myVelocity) * dt ;
-        transform.Rotate(Vector3.back, myRotationVelocity * dt );
+		transform.position += Global.V2ToV3(myVelocity) * edt ;
+		transform.Rotate(Vector3.back, myRotationVelocity * edt ) ;
 
-        petalModel.Rotate( petalModelRotateToward * myRotationVelocity * petalModelRotateIntense * dt * 30f);
+        petalModel.Rotate( petalModelRotateToward * myRotationVelocity * petalModelRotateIntense * edt * 30f);
 
         //change the scale(z distance)
-		if ( state == PetalState.FlyAway || state == PetalState.FlyAway ) {
+		if ( state == PetalState.FlyAway || state == PetalState.FlyAway || state == PetalState.Init ) {
 	        scaleVol += Vector3.Dot(petalModel.transform.up, Vector3.back) * scaleIntense;
 	        myScale += scaleVol;
 	        myScale = Mathf.Clamp(myScale, 1f/maxScale, maxScale);
@@ -280,7 +304,7 @@ public class Petal3D : Petal {
 
 	override public float GetGrowTime()
 	{
-		return m_grwoDuration;
+		return m_grwoDuration / LogicManager.AnimTimeRate;
 	}
 
     Vector2 chaosForce;
@@ -302,10 +326,10 @@ public class Petal3D : Petal {
         chaosFunction = StartCoroutine(GenerateChaos(Random.Range(.5f, .8f)));
     }
 
-	public override void OnLand (Collision2D coll)
+	public override void OnLand (Vector3 point, Vector3 normal, GameObject obj)
 	{
 		if ( !isFlowerPetal )
-			base.OnLand (coll);
+			base.OnLand (point,normal,obj);
 	}
 
     protected override void SelfDestory () {

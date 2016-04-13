@@ -1,28 +1,35 @@
 ﻿
 public enum EventDefine
 {
-	None,
+	None = 0,
 
-	BeginLevel,
+	BeginLevel = 1,
 
-	EnterFinal,
+	EnterFinal = 2,
 
-	RenewSwipeTime,
+	RenewSwipeTime = 3,
 
-	AddSwipeTime,
+	AddSwipeTime = 4,
 
-	BlowFlower,
+	BlowFlower = 5 ,
 
-	GrowFlowerOn,
+	GrowFlowerOn = 6,
 
-	GrowFinalFlower,
+	GrowFinalFlower = 7,
 
-	EndLevel,
+	EndLevel = 8,
 
-	AllBlackEndLevel,
+	AllBlackEndLevel = 9,
 
-	Retry,
+	Retry = 10 ,
 
-	AllBlackRetry,
+	AllBlackRetry = 11,
+
+	ShowWind = 12,
+
+	HideWind = 13,
+
+	GrowFirstFlower = 14,
+
 
 }

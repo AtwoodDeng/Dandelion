@@ -5,6 +5,7 @@ using DG.Tweening;
 public class PointArea : Area {
 
 	[SerializeField] SpriteRenderer sprite;
+	[SerializeField] float appearDelay = 5f;
 
 	public bool isFinished = false;
 
@@ -13,8 +14,30 @@ public class PointArea : Area {
 		gameObject.tag = "FinalPoint";
 		if ( sprite == null )
 			sprite = GetComponent<SpriteRenderer>();
-		if ( col == null )
-			col = GetComponent<Collider2D>();
+		sprite.DOFade(0,0);
+		if ( col2D == null )
+			col2D = GetComponent<Collider2D>();
+		if ( col3D == null )
+			col3D = GetComponent<Collider>();
+	}
+
+	void Start()
+	{
+		StartCoroutine( startCor(appearDelay));
+	}
+
+	Sequence shineSequence;
+	IEnumerator startCor(float delay)
+	{
+		yield return new WaitForSeconds(delay);
+		if ( sprite != null )
+		{
+			shineSequence = DOTween.Sequence();
+			shineSequence.Append( sprite.DOFade( 1f , 1f ));
+			shineSequence.Append( sprite.DOFade( 0.5f , 1f ).SetLoops( 99999 , LoopType.Yoyo ).SetEase(Ease.InOutCubic));
+		}
+		yield break;
+		
 	}
 
 	void OnEnable()
@@ -40,10 +63,15 @@ public class PointArea : Area {
 	{
 		if ( sprite != null )
 		{
+			shineSequence.Kill();
 			sprite.DOFade( 0 , 1f );
 		}
-		col.enabled = false;
+		if ( col3D != null )
+			col3D.enabled = false;
+		if ( col2D != null )
+			col2D.enabled = false;
 		isFinished = true;
+
 	}
 
 }

@@ -40,14 +40,14 @@ public class FollowWindGroup : FollowWind {
     }
 
 
-	protected override void UpdateObject () {
-
+	protected override void UpdateObject (float dt ) {
+		
+		float edt = dt * LogicManager.PhysTimeRate;
 	    float windForce = 0;
+
         //test if in the wind
         if ( windVelocity != Vector2.zero)
         {
-       	 	// float windAngle = Vector2.Angle(transform.up, tempWind.temDirection);
-       	 	// windForce = Mathf.Sin(windAngle / 180f * Mathf.PI) * swind * tempWind.temIntense;
        		Vector3 windDirect = Global.V2ToV3(windVelocity.normalized);
        		float windEffect = Vector3.Dot(Vector3.back , Vector3.Cross(transform.up, windDirect) );
        		windForce = windEffect * windVelocity.magnitude;
@@ -55,17 +55,15 @@ public class FollowWindGroup : FollowWind {
 
 		for( int i = 0 ; i < datas.Length ; ++ i )
 		{
-	        // do the animation of stem
-	        
 	        float offSetAngle = Mathf.DeltaAngle(transform.eulerAngles.z, datas[i].initAngle);
 	        
 	        float swindForce = - offSetAngle * datas[i].K;
 
-	        datas[i].angleVol += windForce * datas[i].swind + swindForce;
+			datas[i].angleVol += ( windForce * datas[i].swind + swindForce) * edt;
 	        datas[i].angleVol *= drag;
 
 	        //Rotate the object
-	        datas[i].obj.transform.Rotate(Vector3.back, datas[i].angleVol);
+			datas[i].obj.transform.Rotate(Vector3.back, datas[i].angleVol * edt );
 		}
     }
 }

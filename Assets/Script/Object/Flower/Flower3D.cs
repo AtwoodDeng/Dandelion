@@ -11,7 +11,8 @@ public class Flower3D : Flower , WindSensable {
 	[SerializeField] GameObject FlowerPetalFinalPrefab;
 	[SerializeField] float growDelay = 1f; 
 	[SerializeField] Petal3D[] flowerPetals;
-	[SerializeField] float endBlow = 10f;
+	[SerializeField] float endBlowVelocity = 10f;
+	[SerializeField] float minBlowVelocity = 0.3f;
 	[SerializeField] AudioSource blowSound;
 	[SerializeField] AudioSource flowerGrowSound;
 	[SerializeField] AudioSource flowerFlyAwaySound;
@@ -19,6 +20,7 @@ public class Flower3D : Flower , WindSensable {
 	[SerializeField] AudioSource stemGrowSound;
 
 	List<SpriteRenderer> leafList = new List<SpriteRenderer>();
+	BoxCollider m_Collider;
 
 	[SerializeField] protected Grow3DParameter grow3DPara;
 
@@ -69,9 +71,7 @@ public class Flower3D : Flower , WindSensable {
 
 	IEnumerator BlowAll()
 	{
-		Debug.Log("End level");
 		int i = 0 ;
-
 
 		while(true)
 		{
@@ -80,7 +80,7 @@ public class Flower3D : Flower , WindSensable {
 
 				int iPetal = i % petals.Count;
 				if ( petals[iPetal].state == PetalState.Link ) {
-					petals[iPetal].Blow( Vector2.up + Global.GetRandomDirection() * 0.6f , Random.Range( 0 , endBlow ) , Petal.BlowType.FlyAway );
+					petals[iPetal].Blow( Vector2.up + Global.GetRandomDirection() * 0.6f , Random.Range( 0 , endBlowVelocity ) , Petal.BlowType.FlyAway );
 				}
 			}
 
@@ -89,7 +89,7 @@ public class Flower3D : Flower , WindSensable {
 
 				int iFlower = i % flowerPetals.Length ;
 				if ( flowerPetals[iFlower].state == PetalState.Link ) {
-					flowerPetals[iFlower].Blow( Vector2.up + Global.GetRandomDirection() * 0.6f , Random.Range( 0 , endBlow ) , Petal.BlowType.FlyAway );
+					flowerPetals[iFlower].Blow( Vector2.up + Global.GetRandomDirection() * 0.6f , Random.Range( 0 , endBlowVelocity ) , Petal.BlowType.FlyAway );
 				}
 					
 			}
@@ -110,13 +110,21 @@ public class Flower3D : Flower , WindSensable {
     {
 		if ( stemGrowSound != null )
 		{
+			stemGrowSound.pitch = LogicManager.AnimTimeRate;
 			stemGrowSound.Play();
 		}
+
+		if ( m_Collider == null )
+		{
+			m_Collider = GetComponent<BoxCollider>();
+		}
+		m_Collider.isTrigger = true;
+
         transform.localScale /= 1000f;
         float timer = 0;
 		while( timer < Mathf.Min(0.1f , growDelay) )
         {
-            timer += Time.deltaTime;
+			timer += Time.deltaTime * LogicManager.AnimTimeRate;
             yield return null;
         }
 
@@ -167,15 +175,14 @@ public class Flower3D : Flower , WindSensable {
 
 
             // set the grow animation
-    		float myGrowTime = growParameter.growTime/stems.Length * scaleY / 0.7f;
+			float myGrowTime = growParameter.growTime/stems.Length * scaleY / 0.7f / LogicManager.AnimTimeRate;
     		if (i == stems.Length - 1 )
 	    		s.DOScaleY(scale.y * 1000f, myGrowTime ).SetDelay(stemGrowTime).SetEase(Ease.Linear).OnComplete(GrowStemComplete);
 			else
 				s.DOScaleY(scale.y * 1000f, myGrowTime ).SetDelay(stemGrowTime).SetEase(Ease.Linear);
 
             // update the grow time
-            stemGrowTime += myGrowTime;
-
+			stemGrowTime += myGrowTime ;
     	}
 
         // init the leafs
@@ -203,10 +210,10 @@ public class Flower3D : Flower , WindSensable {
     		// make all the leaf grow in same speed
     		// and make the bigger leaf grow earlier
  			float process = (scale - grow3DPara.leafScaleRange.min + 0.2f) / ( grow3DPara.leafScaleRange.max - grow3DPara.leafScaleRange.min);
-    		float growTime = process * growParameter.growTime / grow3DPara.leafScaleRange.max;
+			float growTime = process * growParameter.growTime / grow3DPara.leafScaleRange.max / LogicManager.AnimTimeRate;
             growTime = Mathf.Clamp(growTime, 0.5f, 3f);
     		leaf.transform.DOScale( 0.01f , growTime  )
-    		.SetDelay( (1 - scale / grow3DPara.leafScaleRange.max ) * growParameter.growTime )
+				.SetDelay( (1 - scale / grow3DPara.leafScaleRange.max ) * growParameter.growTime / LogicManager.AnimTimeRate )
     		.From();
             sprite.DOFade(0, growTime / 2).SetDelay( (1 - scale / grow3DPara.leafScaleRange.max ) * growParameter.growTime ).From();
     	}
@@ -219,8 +226,7 @@ public class Flower3D : Flower , WindSensable {
 		petalRoot.transform.localScale = new Vector3( rootLS.x / rootGS.x , rootLS.y / rootGS.y , rootLS.z / rootGS.z);
 
 
-        BoxCollider boxCol = GetComponent<BoxCollider>();
-        boxCol.center = petalRoot.position - transform.position;
+		// m_Collider.center = petalRoot.position - transform.position;
 
 		GrowFlowerPatel();
     }
@@ -237,6 +243,7 @@ public class Flower3D : Flower , WindSensable {
 
 		if ( flowerGrowSound != null )
 		{
+			flowerGrowSound.pitch = LogicManager.AnimTimeRate;
 			flowerGrowSound.Play();
 		}
 		float maxGrowTime = 0.5f ;
@@ -256,7 +263,7 @@ public class Flower3D : Flower , WindSensable {
 				
 			maxGrowTime = Mathf.Max( maxGrowTime , flowerPetals[i].GetGrowTime() );
 		}
-		yield return new WaitForSeconds(maxGrowTime);
+		yield return new WaitForSeconds(maxGrowTime / LogicManager.AnimTimeRate);
 
 		if ( growParameter.petalType == PetalType.Final ) 
 		{
@@ -269,17 +276,19 @@ public class Flower3D : Flower , WindSensable {
 		{
 			if ( flowerFlyAwaySound != null )
 			{
+				flowerFlyAwaySound.pitch = LogicManager.AnimTimeRate;
 				flowerFlyAwaySound.Play();
 			}
 
 			for ( int i = 0 ; i < flowerPetals.Length ; ++ i )
 			{
 				flowerPetals[i].Blow( Vector2.right + 0.4f * Global.GetRandomDirection().normalized , 0 , Petal.BlowType.FlyAway );
-				yield return new WaitForSeconds(grow3DPara.flowerPetalUnlinkInterval );
+				yield return new WaitForSeconds(grow3DPara.flowerPetalUnlinkInterval / LogicManager.AnimTimeRate );
 			}
 
 			if ( petalGrowSound != null )
 			{
+				petalGrowSound.pitch = LogicManager.AnimTimeRate;
 				petalGrowSound.Play();
 			}
 
@@ -300,37 +309,41 @@ public class Flower3D : Flower , WindSensable {
 		for ( int i = 0 ; i < flowerPetals.Length ; ++ i )
 		{
 			flowerPetals[i].Blow( Global.GetRandomDirection() , 0 , Petal.BlowType.FlyAway );
-			yield return new WaitForSeconds(grow3DPara.flowerPetalUnlinkInterval );
+			yield return new WaitForSeconds(grow3DPara.flowerPetalUnlinkInterval / LogicManager.AnimTimeRate);
 		}
 		yield break;
 	}
 
-	protected override bool canBlow ()
+	protected bool canBlow ( Vector2 move , float velocity)
 	{
-		if ( petals.Count < petalNum - 1 )
+		if ( velocity < minBlowVelocity )
 			return false;
+//		if ( petals.Count < petalNum - 1 )
+//			return false;
 		Petal petal = petals[0];
 		if ( petal != null && Time.time - initPetalTime < petal.GetGrowTime())
 			return false;
+		
 		return base.canBlow();
 	}
 
-	public override void Blow (Vector2 move, float velocity)
+	public override void Blow (Vector2 dir, float velocity)
 	{
-		if ( canBlow() )
+		if ( canBlow( dir , velocity ) )
 		{
 			if ( blowSound != null )
 			{
 				blowSound.Play();
-				blowSound.volume = velocity / 5000f;
+				blowSound.volume = velocity / 15f ;
 			}
-			base.Blow (move, velocity);
+			base.Blow (dir, velocity);
+
 
 			// make the flower react to the blow
 			FollowWind stemFollowWind = stems[0].GetComponent<FollowWind>();
 			if ( stemFollowWind != null )
 			{
-				stemFollowWind.AddImpuse( move * velocity , petalRoot.position );
+				stemFollowWind.AddImpuse( dir * velocity , petalRoot.position );
 			}
 		}
 	}
@@ -375,4 +388,5 @@ public class Flower3D : Flower , WindSensable {
         windSensablParameter.shouldUpdate = false;
         enabled = false;
     }
+
 }

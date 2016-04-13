@@ -492,11 +492,11 @@ public class FingerGestures : MonoBehaviour
 #if UNITY_IPHONE
         if( Application.platform == RuntimePlatform.IPhonePlayer )
         {
-            switch( iPhone.generation )
+            switch( UnityEngine.iOS.Device.generation )
             {
-                case iPhoneGeneration.iPad3Gen:
-                case iPhoneGeneration.iPhone4:
-                case iPhoneGeneration.iPhone4S:
+                case UnityEngine.iOS.DeviceGeneration.iPad3Gen:
+                case UnityEngine.iOS.DeviceGeneration.iPhone4:
+                case UnityEngine.iOS.DeviceGeneration.iPhone4S:
                 //case iPhoneGeneration.iPhone5: //TODO (Unity 3.6+)
                     return true;
             }

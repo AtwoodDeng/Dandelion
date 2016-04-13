@@ -10,4 +10,14 @@ public class SenseGuesture : MonoBehaviour {
 	public virtual void DealTap( TapGesture guesture )
 	{
 	}
+
+	public virtual void DealOnFingerDown( FingerDownEvent e )
+	{
+	}
+	public virtual void DealOnFingerHover( FingerHoverEvent e )
+	{
+	}
+	public virtual void DealOnFingerUp( FingerUpEvent e )
+	{
+	}
 }

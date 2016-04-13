@@ -15,8 +15,6 @@ public class Petal : MonoBehaviour  {
 	public PetalState state = PetalState.Link;
 
 
-
-
 	public PetalInfo myGrowInfo;
 
 	public enum BlowType
@@ -75,9 +73,9 @@ public class Petal : MonoBehaviour  {
 		flowerCom.growParameter.petalType = myGrowInfo.type;
 		flowerCom.Init();
 
-		flowerObj.transform.position = position - flowerCom.root.localPosition;
 		if (parent != null )
-			flowerObj.transform.parent = parent;
+			flowerObj.transform.SetParent(parent);
+		flowerObj.transform.position = position - flowerCom.root.localPosition;
 
 		SendGrowMessage(position);
 	}
@@ -100,14 +98,23 @@ public class Petal : MonoBehaviour  {
 
     void OnCollisionEnter2D(Collision2D coll)
 	{
-		if (state != PetalState.Fly)
-			return;
 		Land land = coll.gameObject.GetComponent<Land>();
 		if(land != null || coll.gameObject.tag == Global.LAND_TAG)
 		{
 			OnLand(coll);
 		}
 	}
+
+
+	void OnCollisionEnter(Collision coll)
+	{
+		Land land = coll.gameObject.GetComponent<Land>();
+		if(land != null || coll.gameObject.tag == Global.LAND_TAG)
+		{
+			OnLand(coll);
+		}
+	}
+
 
 //	void OnTriggerEnter2D(Collider2D coll)
 //	{
@@ -120,33 +127,50 @@ public class Petal : MonoBehaviour  {
 //		}
 //	}
 
-	virtual public void OnLand(Collision2D coll)
+	public void OnLand(Collision2D coll)
 	{
+		OnLand( Global.V2ToV3( coll.contacts[0].point )
+			, Global.V2ToV3( coll.contacts[0].normal ) 
+			, coll.collider.gameObject );
+	}
 
-		Debug.Log("On Land");
-		if ( state == PetalState.Fly )
+	public void OnLand(Collision coll)
+	{
+		OnLand( coll.contacts[0].point , coll.contacts[0].normal , coll.collider.gameObject );
+	}
+
+	virtual public void OnLand(Vector3 point , Vector3 normal , GameObject obj)
+	{
+		if ( state == PetalState.Fly || state == PetalState.Init )
 		{
-			
+			// set the petal stable
+			if ( GetComponent<Rigidbody>() != null ) {
+				GetComponent<Rigidbody>().isKinematic = true;
+			}
 			//Change the State of the petal
+			if ( state == PetalState.Init )
+				EventManager.Instance.PostEvent( EventDefine.GrowFirstFlower );
 			state = PetalState.Land;
 			//Grow a new flower on the collision point
-			Vector3 contactPoint = new Vector3( coll.contacts[0].point.x , coll.contacts[0].point.y , 0 );
-			Vector3 normal = new Vector3( coll.contacts[0].normal.x , coll.contacts[0].normal.y , 0 );
-			Vector3 growPoint = contactPoint - normal * 1f;
+			Vector3 contactPoint = new Vector3( point.x , point.y , 0 );
+			Vector3 _normal = new Vector3( normal.x , normal.y , 0 );
+			Vector3 growPoint = contactPoint - _normal.normalized * 0.1f;
 
 
 			//cast a ray to find if actual hit point
 			int layerMask = 1 << LayerMask.NameToLayer("Land");
-			RaycastHit2D hitInfo = Physics2D.Raycast(coll.contacts[0].point, Vector2.down , 2f , layerMask );
-			if ( hitInfo != null)
+			RaycastHit hitInfo ;
+
+			if ( Physics.Raycast( point , Vector3.down , out hitInfo, 2f , layerMask ) )
 			{
 				growPoint = Global.V2ToV3( hitInfo.point ) + Vector3.down * hitInfo.distance * 2;
 			}
 
-			if (checkCanGrowFlower(growPoint , normal))
-				GrowFlowerOn(growPoint, normal , coll.collider.transform );
+			if (checkCanGrowFlower(growPoint , _normal))
+				GrowFlowerOn(growPoint, _normal , obj.transform );
 
 			transform.DOScale( 0 , 1f ).OnComplete(SelfDestory);
+			transform.DOMove( - 0.1f * _normal , 1f ).SetRelative(true).OnComplete(SelfDestory);
 
 		}else if ( state == PetalState.FlyAway)
 		{

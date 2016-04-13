@@ -10,11 +10,11 @@ public class WindAdv : MonoBehaviour {
 	[SerializeField] float Densiity = 1.0f;
 	[SerializeField] int ThreadNumber = 1;
 	[SerializeField] float Vorticity = 1f;
-	[SerializeField] int iterationTime = 50;
+	[SerializeField] int IterationTime = 50;
+	int m_iterationTime = 0;
 
 	// *************  UI **************
 	[SerializeField] SpriteRenderer windBackUI;
-	[SerializeField] GameObject windArrowUIPrefab;
 	[SerializeField] GameObject WindTestPrefab;
 	[SerializeField] AnimationCurve ArrowScaleCurve;
 	[SerializeField] int windTestNum = 100;
@@ -89,17 +89,29 @@ public class WindAdv : MonoBehaviour {
 
 	void Awake()
 	{
+		
+	}
+
+	void Start()
+	{
 		Init();
 		InitBuffers();
 		InitUI();
 
+		StartUpdateWind();
+	}
+
+	Coroutine m_updateWindCor;
+	public void StartUpdateWind()
+	{
 		ForAllInt(m_obstacle,UpdateObstacle);
 		ForAllVec2(m_velocity, InitVelocity);
 		ForAllVec2(m_force_velocity, InitForceVelocity);
-
-		StartCoroutine(UpdateWind());
+		if ( m_updateWindCor == null)
+			m_updateWindCor = StartCoroutine(UpdateWind(IterationTime));
+		else
+			m_iterationTime = IterationTime;
 	}
-
 
 
 	void Init()
@@ -467,12 +479,13 @@ public class WindAdv : MonoBehaviour {
 	}
 
 ///////////////////////
-	IEnumerator UpdateWind()
+	IEnumerator UpdateWind( int time )
 	{
 		float[] tem_pressure = new float[width * height];
 		Vector2[] tem_velocity = new Vector2[width * height];
+		m_iterationTime += time;
 
-		while( iterationTime > 0)
+		while( m_iterationTime > 0)
 		{
 			//divergence
 			ForAllFloat(m_divergence, UpdateDivergence );
@@ -487,7 +500,7 @@ public class WindAdv : MonoBehaviour {
 			// pressure
 			ForAllFloat(m_pressure , ResetFloat );
 
-			for ( int i = 0 ; i < 10 ; ++ i )
+			for ( int i = 0 ; i < 5 ; ++ i )
 			{
 				for ( int k = 0 ; k < 5 ; ++ k )
 				{
@@ -503,10 +516,12 @@ public class WindAdv : MonoBehaviour {
 
 			ForAllVec2(m_velocity, ResetBoundary);
 
-			iterationTime --;
+			m_iterationTime --;
 
 			yield return null;
 		}
+
+		m_updateWindCor = null;
 	}
 
 ///////// Trigger /////////////
@@ -591,20 +606,6 @@ public class WindAdv : MonoBehaviour {
 			, Size.y * 100f / windBackUI.sprite.texture.height );
 		windBackUI.DOFade(0,0);
 
-//		UIarrows = new  SpriteRenderer[width * height ];
-//		for ( int i = 0 ; i < width ; ++ i )
-//			for ( int j = 0 ; j < height ; ++ j )
-//			{
-//				GameObject arrow = Instantiate( windArrowUIPrefab ) as GameObject;
-//				arrow.transform.SetParent(transform );
-//				arrow.transform.position = ij2Pos( i , j ) ;
-//
-//				SpriteRenderer sprite = arrow.GetComponent<SpriteRenderer>();
-//				sprite.DOFade(0,0);
-//
-//				UIarrows[ij2index(i,j)] = sprite;
-//				sprite.enabled = false;
-//			}
 
 		WindTests = new WindTest[ windTestNum ];
 		for ( int i = 0 ; i < windTestNum ; ++ i )
@@ -634,18 +635,26 @@ public class WindAdv : MonoBehaviour {
 		}
 	}
 
+	float lastSwitchTime;
+	public void UISwitch()
+	{
+		if ( Time.time - lastSwitchTime < 2f  )
+			return;
+		lastSwitchTime = Time.time;
+
+		if ( UIShowed )
+			HideUI();
+		else 
+			ShowUI();
+	}
 	public void ShowUI()
 	{
-//		UpdateArrow();
+		
 		windBackUI.DOFade( 0.5f , 2f ).SetEase(Ease.OutExpo);
 		InitWindTestPos();
 
-//		for( int i = 0 ; i < width ; ++ i )
-//			for ( int j = 0 ; j < height ; ++ j )
-//			{
-//				UIarrows[ij2index(i,j)].enabled = true;
-//				UIarrows[ij2index(i,j)].DOFade( 1f , 0.5f ).SetDelay( 0.05f * ( i + j )); 
-//			}
+		EventManager.Instance.PostEvent(EventDefine.ShowWind);
+
 		UIShowed = true;
 	}
 
@@ -659,30 +668,12 @@ public class WindAdv : MonoBehaviour {
 			WindTests[i].Exit();
 		}
 
-//		for( int i = 0 ; i < width ; ++ i )
-//			for ( int j = 0 ; j < height ; ++ j )
-//			{
-//				UIarrows[ij2index(i,j)].enabled = false;
-//				UIarrows[ij2index(i,j)].DOFade( 0f , 0.5f ).SetDelay( 0.02f * ( i + j )); 
-//			}
+		EventManager.Instance.PostEvent(EventDefine.HideWind);
+
 		UIShowed = false;
 	}
 
 
-//	void UpdateArrow()
-//	{	
-//		for( int i = 0 ; i < width ; ++ i )
-//			for ( int j = 0 ; j < height ; ++ j )
-//			{
-//				Vector2 velocity = GetVelocity( ij2Pos( i , j ) );
-//				float vel = ArrowScaleCurve.Evaluate( velocity.magnitude );
-//				UIarrows[ij2index(i,j)].transform.localScale = vel * Vector3.one;
-//				float angel = Mathf.Atan2( velocity.y , velocity.x ) * Mathf.Rad2Deg;
-//				angel -= 90f ;
-//				UIarrows[ij2index(i,j)].transform.eulerAngles = new Vector3( 0 , 0 , angel );
-//			}
-//		
-//	}
 
 //////////////////////
 

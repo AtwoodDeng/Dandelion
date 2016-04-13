@@ -32,8 +32,8 @@ public class M2DLight : MonoBehaviour {
 
 	void Start()
 	{
-		Vector3 toward = new Vector3( Mathf.Cos( direction ) , Mathf.Sin( direction ));
-		Vector3 side = new Vector3( Mathf.Sin( direction ) , - Mathf.Cos( direction ));
+//		Vector3 toward = new Vector3( Mathf.Cos( direction ) , Mathf.Sin( direction ));
+//		Vector3 side = new Vector3( Mathf.Sin( direction ) , - Mathf.Cos( direction ));
 		lightWidth = 1f / density;
 		lightNum = (int) (width / lightWidth);
 

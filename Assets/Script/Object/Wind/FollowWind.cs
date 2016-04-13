@@ -12,6 +12,7 @@ public class FollowWind : MonoBehaviour , WindSensable {
 	[SerializeField] MaxMin swingRange;
 	[SerializeField] protected float controlDrag;
 	[SerializeField] AudioSource touchSound;
+	[SerializeField] AudioSource blowSound;
 
     protected Vector2 windVelocity = Vector2.zero;
 
@@ -35,19 +36,35 @@ public class FollowWind : MonoBehaviour , WindSensable {
         return windSensablParameter;
     }
 
-	virtual public void AddImpuse(Vector3 impuse , Vector3 position )
+	virtual public void AddImpuse( float intense , Vector3 position )
 	{
-		Vector3 m_impuse = impuse;
-		m_impuse.z = 0 ;
 		Vector3 radius = position - transform.position;
 		radius.z = 0;
-		float torque = 1e-7f * Vector3.Dot( Vector3.back , Vector3.Cross( radius , m_impuse ));
+		float torque = radius.magnitude * intense;
 		torque *= senseImpuse;
 
 		if ( touchSound != null )
 		{
 			touchSound.volume = torque / senseImpuse;
 			touchSound.Play(); 
+		}
+
+		angleVol += torque;
+	}
+
+	virtual public void AddImpuse(Vector3 impuse , Vector3 position )
+	{
+		Vector3 m_impuse = impuse;
+		m_impuse.z = 0 ;
+		Vector3 radius = position - transform.position;
+		radius.z = 0;
+		float torque = 1e-2f * Vector3.Dot( Vector3.back , Vector3.Cross( radius , m_impuse ));
+		torque *= senseImpuse;
+
+		if ( blowSound != null )
+		{
+			blowSound.volume = torque / senseImpuse;
+			blowSound.Play(); 
 		}
 
 		angleVol += torque;
@@ -81,7 +98,7 @@ public class FollowWind : MonoBehaviour , WindSensable {
         }
         // while(true)
         // {
-        UpdateObject();
+		UpdateObject(Time.deltaTime);
     }
 
 	virtual public void Init()
@@ -91,9 +108,11 @@ public class FollowWind : MonoBehaviour , WindSensable {
             isInit = true;
     }
 
-    virtual protected void UpdateObject()
+	virtual protected void UpdateObject(float dt)
     {
+		float edt = dt * LogicManager.PhysTimeRate;
         float windForce = 0;
+
         //test if in the wind
         if ( windVelocity != Vector2.zero)
         {
@@ -108,7 +127,7 @@ public class FollowWind : MonoBehaviour , WindSensable {
 
         float KForce = - offSetAngle * K;
 
-		angleVol += ( windForce + KForce ) * Time.deltaTime * 30f;
+		angleVol += ( windForce + KForce ) * edt * 30f;
 		if ( Mathf.Abs( offSetAngle ) > swingRange.max / 3f )
 			angleVol *= drag;
 
@@ -127,7 +146,7 @@ public class FollowWind : MonoBehaviour , WindSensable {
 
 
         //Rotate the object
-		transform.Rotate(Vector3.back, angleVol * Time.deltaTime * 30f );
+		transform.Rotate(Vector3.back, angleVol * edt * 30f );
 
 
         // yield return null;
