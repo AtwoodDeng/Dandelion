@@ -117,26 +117,33 @@ public class Flower : MonoBehaviour {
 		return LogicManager.Instance.RemainBlowTime > 0;
 	}
 
-	virtual public void Blow(Vector2 dir , float velocity)
+	public void Blow(Vector2 dir , float velocity)
+	{
+		Blow( dir.normalized * velocity );
+	}
+
+	virtual public void Blow(Vector2 velocity )
 	{
 		if ( canBlow() )
 		{
-		
 			Message msg = new Message();
 			msg.AddMessage("Flower" , this );
-			EventManager.Instance.PostEvent( EventDefine.BlowFlower , msg );
 
 			if ( useChance )
 			{
+				int blow = 0;
 				foreach(Petal petal in petals)
 				{
 					if (petal.state == PetalState.Link && Random.Range(0, 1f) < blowChance)
 					{
-						if (Random.Range(0, 1f) < flyAwayChance)
-							petal.Blow(dir.normalized + 0.6f * Global.GetRandomDirection(), velocity, Petal.BlowType.FlyAway);
-						else
-							petal.Blow(dir.normalized + Random.Range(0,0.4f) * Global.GetRandomDirection(), velocity, Petal.BlowType.Normal);
-
+						if (Random.Range(0, 1f) < flyAwayChance) {
+							petal.Blow( (velocity.normalized + 0.6f * Global.GetRandomDirection()) * velocity.magnitude , Petal.BlowType.FlyAway);
+						}
+						else {
+							msg.AddMessage("petal" + blow.ToString() , petal );
+							blow++;
+							petal.Blow( ( velocity.normalized + Random.Range(0,0.4f) * Global.GetRandomDirection() ) * velocity.magnitude , Petal.BlowType.Normal);
+						}
 						petal.transform.parent = LogicManager.Level.transform;
 					}
 				}
@@ -146,8 +153,10 @@ public class Flower : MonoBehaviour {
 				{
 					if ( petals[i].state == PetalState.Link )
 					{
-						petals[i].Blow( dir.normalized + Random.Range(0,0.4f) * Global.GetRandomDirection() , velocity , Petal.BlowType.Normal );
+						petals[i].Blow( (velocity.normalized + Random.Range(0,0.4f) * Global.GetRandomDirection()) * velocity.magnitude , Petal.BlowType.Normal );
 						petals[i].transform.parent = LogicManager.Level.transform;
+				
+						msg.AddMessage("petal" + blow.ToString() , petals[i] );
 						blow ++;
 					}
 				}
@@ -156,12 +165,16 @@ public class Flower : MonoBehaviour {
 				{
 					if ( petals[i].state == PetalState.Link && Random.Range(0, 1f) < blowChance )
 					{
-						petals[i].Blow( dir.normalized + 0.6f * Global.GetRandomDirection() , velocity , Petal.BlowType.FlyAway );
+						petals[i].Blow( (velocity.normalized + 0.6f * Global.GetRandomDirection()) * velocity.magnitude , Petal.BlowType.FlyAway );
 						petals[i].transform.parent = LogicManager.Level.transform;
 					}
 				}
 			}
+
+
+			EventManager.Instance.PostEvent( EventDefine.BlowFlower , msg );
 		}
+
 
 	}
 

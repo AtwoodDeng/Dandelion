@@ -45,7 +45,7 @@ public class Petal3D : Petal {
 		{
 			Init(null,0);
 			// Blow( Global.GetRandomDirection() , 0 , BlowType.Normal );
-			myRotationVelocity = maxRotVel;
+			myRotationVelocity = maxRotVel * .9f;
 		}
 	}
 
@@ -67,7 +67,7 @@ public class Petal3D : Petal {
         petalModelRotateToward = Global.GetRandomDirectionV3();
 
         // the initial phase position of the petal
-        petalModelLinkInit = Random.Range(0,Mathf.PI*2f);
+        petalModelLinkInit = Random.Range(0,Mathf.PI * 2f);
         // randomize some parameter
         petalModelRotateIntense *= Random.Range(0.5f, 2f);
         petalModelLinkIntense *= Random.Range(0.1f, 5f);
@@ -168,8 +168,8 @@ public class Petal3D : Petal {
 		}
 	}
     
-    public override void Blow (Vector2 move, float vel , BlowType blowType = BlowType.Normal) {
-		base.Blow(move, vel , blowType );
+    public override void Blow (Vector2 vel , BlowType blowType = BlowType.Normal) {
+		base.Blow(vel , blowType );
 
 //		Vector3 blowDirection = move;
 //        float blowVelocity = vel * Random.Range(0.75f , 1.25f);
@@ -201,11 +201,13 @@ public class Petal3D : Petal {
 //				SpriteRenderer render = petalModel.GetComponentInChildren<SpriteRenderer>();
 //				render.DOFade( 0 , fadeTime );
 			//			}
-
         }
 
+		// set parent to level
+		transform.SetParent( LogicManager.LevelManager.GetLevelObject().transform );
+
 		// update the velocity
-		LinkVelocity( move * vel * blowIntense );
+		LinkVelocity( vel * blowIntense );
 
 		// link to the wind 
         follow.windSensablParameter.shouldUpdate = true;
@@ -266,13 +268,13 @@ public class Petal3D : Petal {
             Vector3 myUp = transform.up + myUpDiff;
             
             //Rotate the petal
-            myRotationVelocity += (  Vector3.Cross(myUp, _force).z 
+			if ( state != PetalState.Init )
+            	myRotationVelocity += (  Vector3.Cross(myUp, _force).z 
 				+ Vector3.Cross(- myUp , Vector3.down * rotationMass * 0.2f ).z ) / rotationMass * edt;
-
 
 	         // control the velocity
 	        myVelocity = Vector3.ClampMagnitude(myVelocity, maxVel);
-            myRotationVelocity = Mathf.Clamp(myRotationVelocity, maxRotVel, -maxRotVel);
+            myRotationVelocity = Mathf.Clamp(myRotationVelocity, -maxRotVel, maxRotVel);
 
 	        // drag the velocity
 	        // myVelocity *= ( 1f - drag );
@@ -282,7 +284,6 @@ public class Petal3D : Petal {
     	// rigidbody velocity don't effect;
     	if (rigidbody != null)	
  		   	rigidbody.velocity = Vector2.zero;
-
     }
 
     void UpdatePosition(float dt )
@@ -307,24 +308,24 @@ public class Petal3D : Petal {
 		return m_grwoDuration / LogicManager.AnimTimeRate;
 	}
 
-    Vector2 chaosForce;
-    Coroutine chaosFunction;
-    // update the chaos(this will run forever)
-    IEnumerator GenerateChaos(float time)
-    {
-        float timer = 0;
-        chaosForce = Global.GetRandomDirection() * myForce.magnitude * Random.Range(0.1f, 1f);
-        while(true)
-        {
-            chaosForce = (chaosForce.normalized + Global.GetRandomDirection().normalized * 0.1f) * chaosForce.magnitude;
-
-            timer += Time.deltaTime;
-            if (timer > time)
-                break;
-            yield return null;
-        }
-        chaosFunction = StartCoroutine(GenerateChaos(Random.Range(.5f, .8f)));
-    }
+//    Vector2 chaosForce;
+//    Coroutine chaosFunction;
+//    // update the chaos(this will run forever)
+//    IEnumerator GenerateChaos(float time)
+//    {
+//        float timer = 0;
+//        chaosForce = Global.GetRandomDirection() * myForce.magnitude * Random.Range(0.1f, 1f);
+//        while(true)
+//        {
+//            chaosForce = (chaosForce.normalized + Global.GetRandomDirection().normalized * 0.1f) * chaosForce.magnitude;
+//
+//            timer += Time.deltaTime;
+//            if (timer > time)
+//                break;
+//            yield return null;
+//        }
+//        chaosFunction = StartCoroutine(GenerateChaos(Random.Range(.5f, .8f)));
+//    }
 
 	public override void OnLand (Vector3 point, Vector3 normal, GameObject obj)
 	{
@@ -335,6 +336,7 @@ public class Petal3D : Petal {
     protected override void SelfDestory () {
         follow.windSensablParameter.shouldStore = false;
         base.SelfDestory();
+
         // if (chaosFunction != null)
         //     StopCoroutine(chaosFunction);
 

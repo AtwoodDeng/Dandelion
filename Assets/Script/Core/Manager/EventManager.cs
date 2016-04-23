@@ -152,4 +152,8 @@ public class Message
 		m_dict.TryGetValue(key , out res);
 		return res;
 	}
+	public bool ContainMessage(string key)
+	{
+		return m_dict.ContainsKey(key);
+	}
 }

@@ -47,8 +47,6 @@ public class LogicManager : MonoBehaviour {
 		}
 	}
 
-
-	
 	static GameObject m_level;
 	static public GameObject Level
 	{
@@ -118,7 +116,6 @@ public class LogicManager : MonoBehaviour {
 			return m_isEnded;
 		}
 	}
-		
 
 	void OnEnable()
 	{

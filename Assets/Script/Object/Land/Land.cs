@@ -81,13 +81,12 @@ public class Land : MonoBehaviour {
 //	Vector4[] coverInitRec = new Vector4[CoverRecordNum];
 //	Vector4[] coverTemRec = new Vector4[CoverRecordNum];
 //	float coverDelay;
-	int coverIndex = 0;
 
 	void Awake()
 	{
 		oriPosition = transform.localPosition;
 
-		m_layer = PosLayer * 0.1f;
+		m_layer = (PosLayer) * 0.1f;
 
 		if ( thisSprite == null )
 			thisSprite = GetComponentInChildren<tk2dSprite>();
@@ -144,6 +143,16 @@ public class Land : MonoBehaviour {
 				m_material.SetVector( "_CoverRec" + i.ToString() , toVec );
 			}
 
+//			// set Gauss Value
+//			for( int i = 0 ; i < Global.GaussSize ; ++ i )
+//				for( int j = 0 ; j < Global.GaussSize ; ++ j )
+//				{
+//					int index = i * Global.GaussSize + j ;
+//					m_material.SetFloat( "_GaussValue" + index.ToString() , GetGaussValue( i , j )  );
+//					Debug.Log("Compare" + GetGaussValue(i,j) + " " + Global.GaussValue[index] );
+//				}
+
+
 //			coverTemRec.x = effectParameter.coverInit.x;
 //			coverTemRec.y = effectParameter.coverInit.y;
 //			coverTemRec.z = 1.0f / effectParameter.coverTex.width * effectParameter.resultTex.width;
@@ -160,6 +169,15 @@ public class Land : MonoBehaviour {
 //		effectSprite.enabled = false;
 		
 		// m_texture = new Texture2D( result.width , result.height);
+	}
+
+	float GetGaussValue( int i , int j )
+	{
+		float x = i - (Global.GaussSize - 1 ) * 0.5f;
+		float y = j - (Global.GaussSize - 1 ) * 0.5f;
+		float res = 1 / ( 2f * Mathf.PI * Global.GaussSigma * Global.GaussSigma );
+		res *= Mathf.Exp( - ( x * x + y * y ) / ( 2f * Global.GaussSigma * Global.GaussSigma ) );
+		return res ;
 	}
 
 	void UpdatePosition()
@@ -185,6 +203,7 @@ public class Land : MonoBehaviour {
 			}
 		}
 
+
 		if ( timer > effectParameter.growTime && !isGrowFinished )
 		{
 			FinishGrow();
@@ -194,9 +213,10 @@ public class Land : MonoBehaviour {
 	void FinishGrow()
 	{
 		effectSprite.enabled = false;
-		Color col = thisSprite.color;
-		col.a = 1f;
-		thisSprite.color = col;
+//		Color col = thisSprite.color;
+//		col.a = 1f;
+//		thisSprite.color = col;
+		thisSprite.color = effectParameter.mainColor;
 		isGrowFinished = true;
 
 		if ( GetComponent<MeshRenderer>() != null )

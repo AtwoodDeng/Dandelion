@@ -70,6 +70,22 @@ public class FollowWind : MonoBehaviour , WindSensable {
 		angleVol += torque;
 	}
 
+	virtual public void AttachVelocity( Vector2 velocity , Vector3 position , float rate = 0.1f )
+	{
+		
+		Vector3 toward = position - transform.position;
+		Vector2 towrd2D = Global.V3ToV2( toward );
+		Vector2 velT = velocity - towrd2D.normalized * Vector2.Dot( velocity , towrd2D.normalized );
+		Vector3 velPos = Vector3.Cross( toward , Vector3.forward ) .normalized;
+
+		float toVel = Vector2.Dot( velT , Global.V3ToV2( velPos) ) / towrd2D.magnitude * Mathf.Rad2Deg;
+
+		if (IsOutOfSwingRange(toVel) )
+			return;
+		
+		angleVol = Mathf.Lerp( angleVol , toVel ,rate  );
+	}
+
     void Awake()
     {
         // windSensablParameter.onRender = true;
@@ -96,8 +112,6 @@ public class FollowWind : MonoBehaviour , WindSensable {
 	    {
             Init();
         }
-        // while(true)
-        // {
 		UpdateObject(Time.deltaTime);
     }
 
@@ -131,19 +145,10 @@ public class FollowWind : MonoBehaviour , WindSensable {
 		if ( Mathf.Abs( offSetAngle ) > swingRange.max / 3f )
 			angleVol *= drag;
 
-		if ( (swingRange.max > 0 && offSetAngle > swingRange.max && angleVol > 0)
-			||  (swingRange.min < 0 && offSetAngle < swingRange.min && angleVol < 0 ) )
+		if (  IsOutOfSwingRange(angleVol) )
 		{
 			angleVol *= controlDrag;
 		}
-
-//		if ( (swingRange.max > 0 && offSetAngle > swingRange.max * 2 )
-//			||  (swingRange.min < 0 && offSetAngle < swingRange.min * 2 ) )
-//		{
-//			angleVol *= drag;
-//			Debug.Log("Out of range 2" );
-//		}
-
 
         //Rotate the object
 		transform.Rotate(Vector3.back, angleVol * edt * 30f );
@@ -152,6 +157,13 @@ public class FollowWind : MonoBehaviour , WindSensable {
         // yield return null;
     // }    
     }
+
+	bool IsOutOfSwingRange(float vel)
+	{
+		float offSetAngle = Mathf.DeltaAngle(transform.eulerAngles.z, initAngle);
+		return (swingRange.max > 0 && offSetAngle > swingRange.max && vel > 0)
+			||  (swingRange.min < 0 && offSetAngle < swingRange.min && vel < 0 );
+	}
 
     void OnBecameVisible()
     {

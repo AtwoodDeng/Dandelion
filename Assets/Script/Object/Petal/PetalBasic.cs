@@ -49,11 +49,11 @@ public class PetalBasic : Petal {
 		top.AddForce(force, ForceMode2D.Impulse);
 	}
 
-	override public void Blow(Vector2 move, float vel, BlowType blowType = BlowType.Normal)
+	override public void Blow(Vector2 vel, BlowType blowType = BlowType.Normal)
 	{
-		base.Blow(move, vel);
+		base.Blow(vel);
 		RemoveConnectBody();
-		top.AddForce( ( move.normalized + Global.GetRandomDirection() * 0.1f ).normalized * vel * blowIntense, ForceMode2D.Impulse);
+		top.AddForce( ( vel.normalized + Global.GetRandomDirection() * 0.1f ).normalized * vel.magnitude * blowIntense, ForceMode2D.Impulse);
 	}
 
 	public override void  Init (Flower _flower , int index )

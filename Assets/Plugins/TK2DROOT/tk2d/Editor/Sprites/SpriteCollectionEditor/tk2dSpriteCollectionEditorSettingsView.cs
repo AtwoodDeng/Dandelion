@@ -221,7 +221,7 @@ namespace tk2dEditor.SpriteCollectionEditor
 			GUILayout.Space(8);
 		}
 
-		void DrawSystemSettings()
+		void DrawSypartsettings()
 		{
 			BeginHeader("System");
 
@@ -616,7 +616,7 @@ namespace tk2dEditor.SpriteCollectionEditor
 
 			DrawAtlasSettings();
 
-			DrawSystemSettings();
+			DrawSypartsettings();
 
 			DrawLinked();
 

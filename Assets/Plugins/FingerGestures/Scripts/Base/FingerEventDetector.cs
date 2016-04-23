@@ -184,15 +184,30 @@ public abstract class FingerEventDetector : MonoBehaviour
         if( !Raycaster || !Raycaster.enabled )
             return null;
 
-        if( !Raycaster.Raycast( screenPos, out lastHit ) )
+		if( !Raycaster.Raycast( screenPos, out lastHit ) )
             return null;
 
         return lastHit.collider.gameObject;
     }
 
+
+	public GameObject PickObject( Vector2 screenPos , Vector2 deltaPos )
+	{
+		if( !Raycaster || !Raycaster.enabled )
+			return null;
+//		if( Raycaster.Raycast( screenPos, out lastHit ) )
+//			return lastHit.collider.gameObject;
+
+		if( Raycaster.Raycast( screenPos, deltaPos , out lastHit ) )
+			return lastHit.collider.gameObject;
+
+		return null;
+	}
+
     protected void UpdateSelection( FingerEvent e )
     {
-        e.Selection = PickObject( e.Position );
+		e.Selection = PickObject( e.Position , e.Finger.DeltaPosition );
+
         e.Hit = LastHit;
     }
 }

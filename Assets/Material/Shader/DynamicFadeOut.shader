@@ -7,19 +7,21 @@
 		_CoverTex ("Cover" , 2D) = "white" {}
         _FadePos("Fade Position" , Range(0,1)) = 0.5
         _FadeRange("Fade Range" , Range(0,1)) = 0.1
-        // _CoverRec("Cover Rect" , Vector) = (0,0,0,0)
+        _BlurAmount("Blur Amount" , float) = 0
+        _BlurRange("Blur Range " , Int ) = 0
 	}
 	SubShader
 	{
-
 	    Tags { "RenderType" = "Transparent" "Queue" = "Transparent" }
 	    Blend SrcAlpha OneMinusSrcAlpha
 	    Cull Off
 	    LOD 200
 
+		// cover
 		Pass
 		{
 			CGPROGRAM
+
 			#pragma vertex vert
 			#pragma fragment frag
 			#include "UnityCG.cginc"
@@ -46,10 +48,11 @@
 			float4 _CoverRec[25];
 			int _TemIndex;
 			int _CountNum;
-//			float4 _CoverRec;
+			float _BlurAmount;
+			int _BlurRange;
 
 
-//			StructuredBuffer<float4> _CoverRec;
+			float _GaussValue[100];
 
 			v2f vert (appdata v)
 			{
@@ -59,23 +62,34 @@
 				return o; 
 			}
 
-//			fixed AlphaAdd( float2 uv , float4 rec )
-//			{
-//				fixed pos = uv + rec.xy;
-//				fixed4 col = tex2D( _CoverTex, pos);
-//				return col.a * 0.04;
-//			} 
+			fixed4 getBlurColor( float2 uv , float blurDistance )
+			{
+				fixed4 sum = fixed4(0,0,0,0);
+				int GaussSize = 9 ;
+
+				for ( int i = 0 ; i <= GaussSize - 1 ; i++ )
+				{
+				     float i_x = uv.x + (i-(GaussSize-1)/2) * blurDistance;
+				     for ( int j = 0 ; j <= GaussSize - 1 ; j++ )
+				     {
+				     	float j_y = uv.y + (j-(GaussSize-1)/2) * blurDistance;
+				     	sum +=  tex2D( _MainTex, float2(i_x,j_y) ) * _GaussValue[i*GaussSize+j];
+				     }
+		        }
+		        return sum;
+			}
+
 			 
 			fixed4 frag (v2f i) : SV_Target
 			{
 				// sample the texture
 				fixed4 col = tex2D(_MainTex, i.uv) * _Color;
 
-//				fixed4 coverCol = tex2D( _CoverTex , i.uv + _CoverRec.xy);
-//				col.a *= coverCol.a;
-
-
-				// col.a += AlphaAdd( i.uv , _CoverRec[0]);
+//				if (_BlurAmount > 0 )
+//				{
+//					col = getBlurColor( i.uv , _BlurAmount * 0.01f ) * _Color;
+//				}
+//				return col;
 
 				float coverA = 0;
 				int k = 0;
@@ -102,7 +116,6 @@
 				}else if ( i.uv.y < _FadePos + _FadeRange)
 				{
 					float a = 1 - (  _FadePos + _FadeRange - i.uv.y ) / _FadeRange;
-					// col.a = clamp( a , 0 , col.a * coverCol.a );
 					col.a *= a;
 				}
 				return col ;

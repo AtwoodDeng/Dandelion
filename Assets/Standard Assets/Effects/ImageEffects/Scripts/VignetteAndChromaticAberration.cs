@@ -100,7 +100,7 @@ namespace UnityStandardAssets.ImageEffects
 
             m_ChromAberrationMaterial.SetFloat ("_ChromaticAberration", chromaticAberration);
             m_ChromAberrationMaterial.SetFloat ("_AxialAberration", axialAberration);
-            m_ChromAberrationMaterial.SetVector ("_BlurDistance", new Vector2 (-blurDistance, blurDistance));
+            m_ChromAberrationMaterial.SetVector ("_BlurDistance", new Vector2 (-blurDistance * 3, blurDistance * 3));
             m_ChromAberrationMaterial.SetFloat ("_Luminance", 1.0f/Mathf.Max(Mathf.Epsilon, luminanceDependency));
 
             if (doPrepass) color.wrapMode = TextureWrapMode.Clamp;

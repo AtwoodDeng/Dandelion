@@ -10,10 +10,18 @@ public class Petal : MonoBehaviour  {
 	[SerializeField] protected GameObject flowerPrefab;
 	[SerializeField] float minGrowDistance = 0.3f;
 	[SerializeField] int growLimit;
-
+	[SerializeField] public Transform top;
 
 	public PetalState state = PetalState.Link;
 
+	public int ID
+	{
+		get {
+			return m_ID;
+		}
+	}
+	int m_ID;
+	static int m_ID_Pool=0;
 
 	public PetalInfo myGrowInfo;
 
@@ -41,6 +49,10 @@ public class Petal : MonoBehaviour  {
 		flowerGrowInfoList.Add(info);
 	}
 
+	void Awake()
+	{
+		m_ID = m_ID_Pool++;
+	}
 
 	virtual public void Init(Flower _flower, int index)
 	{
@@ -139,6 +151,8 @@ public class Petal : MonoBehaviour  {
 		OnLand( coll.contacts[0].point , coll.contacts[0].normal , coll.collider.gameObject );
 	}
 
+	Message destoryMessage = new Message();
+
 	virtual public void OnLand(Vector3 point , Vector3 normal , GameObject obj)
 	{
 		if ( state == PetalState.Fly || state == PetalState.Init )
@@ -147,6 +161,7 @@ public class Petal : MonoBehaviour  {
 			if ( GetComponent<Rigidbody>() != null ) {
 				GetComponent<Rigidbody>().isKinematic = true;
 			}
+
 			//Change the State of the petal
 			if ( state == PetalState.Init )
 				EventManager.Instance.PostEvent( EventDefine.GrowFirstFlower );
@@ -166,8 +181,13 @@ public class Petal : MonoBehaviour  {
 				growPoint = Global.V2ToV3( hitInfo.point ) + Vector3.down * hitInfo.distance * 2;
 			}
 
-			if (checkCanGrowFlower(growPoint , _normal))
+			if (checkCanGrowFlower(growPoint , _normal)) 
+			{
 				GrowFlowerOn(growPoint, _normal , obj.transform );
+			} else
+			{
+				destoryMessage.AddMessage("onLand" , 1);
+			}
 
 			transform.DOScale( 0 , 1f ).OnComplete(SelfDestory);
 			transform.DOMove( - 0.1f * _normal , 1f ).SetRelative(true).OnComplete(SelfDestory);
@@ -218,21 +238,27 @@ public class Petal : MonoBehaviour  {
 	{
 		transform.position = new Vector3(999999f,999999f,999999f);
 		gameObject.SetActive(false);
+
+
+		destoryMessage.AddMessage("petal" , this );
+		EventManager.Instance.PostEvent(EventDefine.PetalDestory , destoryMessage );
 		// Destroy(this.gameObject);
 
 	}
 
 	// Called by Flower.cs 
 	// Call when player blow the dendalion
-	virtual public void Blow(Vector2 move, float vel, BlowType blowType = BlowType.Normal)
+	public void Blow(Vector2 move, float vel, BlowType blowType = BlowType.Normal)
+	{
+		Blow( move.normalized * vel , blowType );
+	}
+	virtual public void Blow(Vector2 vel, BlowType blowType = BlowType.Normal)
 	{
 		if (blowType == BlowType.Normal )
 			state = PetalState.Fly;
 		else if (blowType == BlowType.FlyAway)
 			state = PetalState.FlyAway;
 	}
-
-	
 
 
 }

@@ -24,9 +24,9 @@ public class PetalAdv : Petal {
         myForce += force;
     }
     
-    public override void Blow (Vector2 move, float vel, BlowType blowType = BlowType.Normal) {
-        base.Blow(move, vel);
-        AddForce((move.normalized + 0.4f * Global.GetRandomDirection()).normalized * vel * blowIntense );
+    public override void Blow (Vector2 vel, BlowType blowType = BlowType.Normal) {
+        base.Blow( vel);
+		AddForce((vel.normalized + 0.4f * Global.GetRandomDirection()).normalized * vel.magnitude * blowIntense );
     }
 
     Vector2 myVelocity = Vector2.zero;

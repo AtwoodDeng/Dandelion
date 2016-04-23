@@ -56,8 +56,6 @@ public class GestureManager : MonoBehaviour {
 
 	}
 
-
-
 	void OnFingerUp( FingerUpEvent e )
 	{
 		GameObject selection = e.Selection;  
@@ -79,6 +77,17 @@ public class GestureManager : MonoBehaviour {
 		SenseGuesture sense = selection.GetComponent<SenseGuesture>();
 		if ( sense != null )
 			sense.DealOnFingerHover( e );
+	}
+
+	void OnFingerMoveBack( FingerMotionEvent e )
+	{
+		GameObject selection = e.Selection;  
+		if (selection == null )
+			return;
+
+		SenseGuesture sense = selection.GetComponent<SenseGuesture>();
+		if ( sense != null )
+			sense.DealOnFingerMotion( e );
 	}
 
 	Vector2 move;

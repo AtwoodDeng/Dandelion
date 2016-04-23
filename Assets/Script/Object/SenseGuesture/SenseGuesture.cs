@@ -20,4 +20,7 @@ public class SenseGuesture : MonoBehaviour {
 	public virtual void DealOnFingerUp( FingerUpEvent e )
 	{
 	}
+
+	public virtual void DealOnFingerMotion( FingerMotionEvent e )
+	{}
 }

@@ -18,6 +18,7 @@ public class Flower3D : Flower , WindSensable {
 	[SerializeField] AudioSource flowerFlyAwaySound;
 	[SerializeField] AudioSource petalGrowSound;
 	[SerializeField] AudioSource stemGrowSound;
+	[SerializeField] FlowerTopSenseGuesture flowerTopSenseGuesture;
 
 	List<SpriteRenderer> leafList = new List<SpriteRenderer>();
 	BoxCollider m_Collider;
@@ -98,9 +99,7 @@ public class Flower3D : Flower , WindSensable {
 			yield return new WaitForSeconds( grow3DPara.flowerPetalUnlinkInterval );
 		}
 	}
-
-
-
+		
 	public override void Grow () {
 
         StartCoroutine(GrowAfterSetUp());
@@ -129,6 +128,7 @@ public class Flower3D : Flower , WindSensable {
         }
 
         transform.localScale *= 1000f;
+
         // init the stems
 		// to record the grow time of stem
 		float stemGrowTime = 0;
@@ -221,12 +221,11 @@ public class Flower3D : Flower , WindSensable {
 
     void GrowStemComplete()
     {
+		
 		Vector3 rootLS = petalRoot.transform.localScale;
 		Vector3 rootGS = petalRoot.transform.lossyScale;
 		petalRoot.transform.localScale = new Vector3( rootLS.x / rootGS.x , rootLS.y / rootGS.y , rootLS.z / rootGS.z);
 
-
-		// m_Collider.center = petalRoot.position - transform.position;
 
 		GrowFlowerPatel();
     }
@@ -235,7 +234,6 @@ public class Flower3D : Flower , WindSensable {
 	{
 		StartCoroutine(GrowFlowerPatalCor(grow3DPara.flowerPetalNumber));
 	}
-
 
 	IEnumerator GrowFlowerPatalCor(int num)
 	{
@@ -295,7 +293,6 @@ public class Flower3D : Flower , WindSensable {
 			StartCoroutine(GrowPetalCor());
 
 		}
-			
 	}
 
 	public void BlowFlowerPetals()
@@ -314,12 +311,12 @@ public class Flower3D : Flower , WindSensable {
 		yield break;
 	}
 
-	protected bool canBlow ( Vector2 move , float velocity)
+	protected bool canBlow ( Vector2 velocity)
 	{
-		if ( velocity < minBlowVelocity )
+		if ( velocity.magnitude < minBlowVelocity )
 			return false;
-//		if ( petals.Count < petalNum - 1 )
-//			return false;
+		if ( petals.Count < petalNum - 1 )
+			return false;
 		Petal petal = petals[0];
 		if ( petal != null && Time.time - initPetalTime < petal.GetGrowTime())
 			return false;
@@ -327,23 +324,23 @@ public class Flower3D : Flower , WindSensable {
 		return base.canBlow();
 	}
 
-	public override void Blow (Vector2 dir, float velocity)
+	public override void Blow (Vector2 velocity)
 	{
-		if ( canBlow( dir , velocity ) )
+		if ( canBlow( velocity ) )
 		{
 			if ( blowSound != null )
 			{
 				blowSound.Play();
-				blowSound.volume = velocity / 15f ;
+				blowSound.volume = velocity.magnitude / 15f ;
 			}
-			base.Blow (dir, velocity);
+			base.Blow (velocity);
 
 
 			// make the flower react to the blow
 			FollowWind stemFollowWind = stems[0].GetComponent<FollowWind>();
 			if ( stemFollowWind != null )
 			{
-				stemFollowWind.AddImpuse( dir * velocity , petalRoot.position );
+				stemFollowWind.AddImpuse( velocity , petalRoot.position );
 			}
 		}
 	}

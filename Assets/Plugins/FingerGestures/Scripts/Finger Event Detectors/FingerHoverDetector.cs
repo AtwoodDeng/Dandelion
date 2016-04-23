@@ -58,7 +58,7 @@ public class FingerHoverDetector : FingerEventDetector<FingerHoverEvent>
         FingerHoverEvent e = GetEvent( finger );
 
         GameObject prevSelection = e.PreviousSelection;
-        GameObject newSelection = finger.IsDown ? PickObject( finger.Position ) : null;
+		GameObject newSelection = finger.IsDown ? PickObject( finger.Position , finger.DeltaPosition ) : null;
 
         if( newSelection != prevSelection )
         {

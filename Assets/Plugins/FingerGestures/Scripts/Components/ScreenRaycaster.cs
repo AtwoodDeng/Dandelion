@@ -48,6 +48,28 @@ public class ScreenRaycaster : MonoBehaviour
         return false;
     }
 
+	float minDis = 0.1f;
+
+	public bool Raycast( Vector2 screenPos, Vector2 deltaPos , out RaycastHit hit )
+	{
+
+		Vector3 pos = Camera.main.ScreenToWorldPoint( new Vector3( screenPos.x , screenPos.y , 0 ) ); 
+		Vector3 delta = Camera.main.ScreenToWorldPoint( screenPos - deltaPos);
+		delta = pos - delta;
+		delta.z = pos.z = 0;
+		// show the detection line
+		Debug.DrawLine( pos , pos - delta , Color.blue, 1f );
+
+		foreach( Camera cam in Cameras )
+		{
+			if ( Physics.Raycast( pos , - delta.normalized , out hit , delta.magnitude ) )
+				return true;
+		}
+
+		hit = new RaycastHit();
+		return false;
+	}
+
     bool Raycast( Camera cam, Vector2 screenPos, out RaycastHit hit )
     {
         Ray ray = cam.ScreenPointToRay( screenPos );

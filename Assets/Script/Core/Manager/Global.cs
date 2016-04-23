@@ -24,7 +24,7 @@ public class Global {
 		float beta = Random.Range(0, Mathf.PI * 2f );
 		return new Vector3(Mathf.Sin(theta) * Mathf.Cos(beta)
 			,Mathf.Sin(theta) * Mathf.Sin(beta)
-			,Mathf.Cos(theta));
+			,Mathf.Cos(theta)).normalized;
 	}
 
 	static public string LAND_TAG = "Land";
@@ -48,13 +48,29 @@ public class Global {
 
 	static public float WIND_UI_Z = 0f;
 
-	static string[] levelNames =
+	static public string[] levelNames =
 	{
 		"lvl1",
 		"lvl1-3",
 		"lvl1-2",
 
 	};
+
+	static public float GaussSigma = 2.5f;
+	static public int GaussSize = 9;
+
+	static public float[] GaussValue = {
+		0.002333f,	0.004054f,	0.006015f,	0.007623f,	0.008249f,	0.007623f,	0.006015f,	0.004054f,	0.002333f,
+		0.004054f,	0.007044f,	0.010453f,	0.013247f,	0.014335f,	0.013247f,	0.010453f,	0.007044f,	0.004054f,
+		0.006015f,	0.010453f,	0.015512f,	0.019657f,	0.021272f,	0.019657f,	0.015512f,	0.010453f,	0.006015f,
+		0.007623f,	0.013247f,	0.019657f,	0.02491f,	0.026956f,	0.02491f,	0.019657f,	0.013247f,	0.007623f,
+		0.008249f,	0.014335f,	0.021272f,	0.026956f,	0.02917f,	0.026956f,	0.021272f,	0.014335f,	0.008249f,
+		0.007623f,	0.013247f,	0.019657f,	0.02491f,	0.026956f,	0.02491f,	0.019657f,	0.013247f,	0.007623f,
+		0.006015f,	0.010453f,	0.015512f,	0.019657f,	0.021272f,	0.019657f,	0.015512f,	0.010453f,	0.006015f,
+		0.004054f,	0.007044f,	0.010453f,	0.013247f,	0.014335f,	0.013247f,	0.010453f,	0.007044f,	0.004054f,
+		0.002333f,	0.004054f,	0.006015f,	0.007623f,	0.008249f,	0.007623f,	0.006015f,	0.004054f,	0.002333f,
+
+		};
 
 	static public string NextLevel()
 	{
@@ -135,4 +151,12 @@ public struct PetalInfo
 	public Vector3 position;
 	public PetalType type;
 	public Area affectPointArea;
+}
+
+[System.Serializable]
+public enum CameraState
+{
+	Disable,
+	Free,
+	FollowTrans,
 }
