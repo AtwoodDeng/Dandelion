@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine.SceneManagement;
 
+
 public class LogicManager : MonoBehaviour {
 
 	public LogicManager() { s_Instance = this; }

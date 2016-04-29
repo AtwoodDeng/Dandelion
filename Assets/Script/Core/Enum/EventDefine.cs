@@ -34,4 +34,6 @@ public enum EventDefine
 
 	PetalDestory = 17,
 
+	UnableToMove = 18,
+
 }

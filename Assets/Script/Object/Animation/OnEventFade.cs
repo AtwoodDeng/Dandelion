@@ -18,10 +18,11 @@ public class OnEventFade : OnEvent {
 		}
 		if ( sprite != null )
 		{
+			sprite.enabled = true;
 			if ( isFrom)
-				sprite.DOFade( fadeTo , time ).SetDelay(delay).SetEase(easeType).From();
+				sprite.DOFade( fadeTo , time ).SetDelay(delay).SetEase(easeType).From().OnComplete(CheckTheAlpha);
 			else
-				sprite.DOFade( fadeTo , time ).SetDelay(delay).SetEase(easeType);
+				sprite.DOFade( fadeTo , time ).SetDelay(delay).SetEase(easeType).OnComplete(CheckTheAlpha);
 		}
 
 
@@ -31,11 +32,20 @@ public class OnEventFade : OnEvent {
 		}
 		if ( img != null )
 		{
+			img.enabled = true;
 			if ( isFrom )
-				img.DOFade( fadeTo , time ).SetDelay(delay).SetEase(easeType).From();
+				img.DOFade( fadeTo , time ).SetDelay(delay).SetEase(easeType).From().OnComplete(CheckTheAlpha);
 			else
-				img.DOFade( fadeTo , time ).SetDelay(delay).SetEase(easeType);
+				img.DOFade( fadeTo , time ).SetDelay(delay).SetEase(easeType).OnComplete(CheckTheAlpha);
 		}
 
+	}
+
+	void CheckTheAlpha()
+	{
+		if ( sprite != null && sprite.color.a <= 0.01f )
+			sprite.enabled = false;
+		if ( img != null && img.color.a <= 0.01f )
+			img.enabled = false;
 	}
 }

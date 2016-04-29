@@ -2,6 +2,7 @@
 using System.Collections;
 using DG.Tweening;
 using System.Collections.Generic;
+using UnityStandardAssets.ImageEffects;
 
 public class CameraManager : MonoBehaviour {
 
@@ -70,8 +71,6 @@ public class CameraManager : MonoBehaviour {
 	List<Petal> blowPetals = new List<Petal>();
 	void OnBlow(Message msg )
 	{
-		
-		m_state = CameraState.Disable;
 		int temNum = blowPetals.Count;
 		int i = 0 ;
 
@@ -88,6 +87,9 @@ public class CameraManager : MonoBehaviour {
 	void OnGrowFlower( Message msg )
 	{
 		Petal p = msg.sender as Petal;
+
+		CameraStopFollow();
+
 		if ( p != null )
 		{
 			for ( int i = 0 ; i < blowPetals.Count ; ++ i )
@@ -95,7 +97,6 @@ public class CameraManager : MonoBehaviour {
 				if ( blowPetals[i].ID == p.ID )
 				{
 					blowPetals.Clear();
-					CameraStopFollow();
 					break;
 				}
 			}
@@ -135,6 +136,12 @@ public class CameraManager : MonoBehaviour {
 			{
 				c.DOOrthoSize( focusOtherSize , CameraFollowFadeTime ).SetEase(Ease.InCubic);
 			}
+			VignetteAndChromaticAberration effect = GetComponentInChildren<VignetteAndChromaticAberration>();
+			if ( effect != null )
+			{
+				//TODO remove the hard code effect intensity
+				DOTween.To( () => effect.intensity , (x) => effect.intensity = x , 0.35f , CameraFollowFadeTime ).SetEase(Ease.InCubic);
+			}
 		}
 	}
 
@@ -149,6 +156,11 @@ public class CameraManager : MonoBehaviour {
 			foreach( Camera c in childCameras )
 			{
 				c.DOOrthoSize( normalOtherSize , CameraFollowFadeTime ).SetEase(Ease.OutCubic);
+			}
+			VignetteAndChromaticAberration effect = GetComponentInChildren<VignetteAndChromaticAberration>();
+			if ( effect != null )
+			{
+				DOTween.To( () => effect.intensity , (x) => effect.intensity = x , 0.24f , CameraFollowFadeTime ).SetEase(Ease.InCubic);
 			}
 		}
 	}
@@ -203,6 +215,7 @@ public class CameraManager : MonoBehaviour {
 			if ( ( Time.time - StartFollowTime ) > MaxFollowTime )
 			{
 				CameraStopFollow();
+				StartFollowTime = 9999f;
 			}
 
 
@@ -244,6 +257,7 @@ public class CameraManager : MonoBehaviour {
 	{
 		if ( enabled && m_state == CameraState.Free )
 		{
+			// update the level position according to the finger movement
 			bool check = false;
 
 			switch( Application.platform )
@@ -274,6 +288,11 @@ public class CameraManager : MonoBehaviour {
 					LogicManager.LevelManager.GetWind().StartUpdateWind();
 				}
 			}
+		}else
+		{
+			//show the unable to move feedback
+			if ( e.Phase == FingerMotionPhase.Started )
+				EventManager.Instance.PostEvent( EventDefine.UnableToMove );
 		}
 	}
 
@@ -338,7 +357,10 @@ public class CameraManager : MonoBehaviour {
 		GameObject selection = e.Selection;
 		if ( e.Finger.Phase == FingerGestures.FingerPhase.Begin )
 		{
-			CreatInk( e.Position , e.Finger );
+			if ( enabled && m_state == CameraState.Free )
+				CreatInk( e.Position , e.Finger );
+			else 
+				EventManager.Instance.PostEvent( EventDefine.UnableToMove );
 		}
 
 	}
