@@ -42,6 +42,7 @@ public class Land : MonoBehaviour {
 //	}
 	[SerializeField] tk2dSprite thisSprite;
 	[SerializeField] SpriteRenderer effectSprite;
+	[SerializeField] GameObject grassPrefab;
 
 	[System.Serializable]
 	public struct EffectParameter
@@ -62,9 +63,14 @@ public class Land : MonoBehaviour {
 	}
 
 	[SerializeField] EffectParameter effectParameter;
+	[SerializeField] Vector3 grassTopOffset;
+	[SerializeField] bool enableGrowFlower = true;
+	[SerializeField] float density = 2f;
+	[SerializeField] AnimationCurve delayCurve = new AnimationCurve();
 	Texture m_texture;
 	Material m_material;
 
+	bool isGrowedGrass = false;
 
 	public static int CoverRecordNum = 10;
 	Vector4[] CoverRec = new Vector4[CoverRecordNum];
@@ -81,6 +87,27 @@ public class Land : MonoBehaviour {
 //	Vector4[] coverInitRec = new Vector4[CoverRecordNum];
 //	Vector4[] coverTemRec = new Vector4[CoverRecordNum];
 //	float coverDelay;
+
+	void OnEnable()
+	{
+		EventManager.Instance.RegistersEvent(EventDefine.GrowFlowerOn, OnGrowFlowerOn);
+	}
+
+	void OnDisable()
+	{
+		EventManager.Instance.UnregistersEvent(EventDefine.GrowFlowerOn, OnGrowFlowerOn);
+	}
+
+	void OnGrowFlowerOn(Message msg )
+	{
+		
+		PetalInfo info = (PetalInfo)msg.GetMessage( "info" );
+		if ( info.parent.gameObject == this.gameObject )
+		{
+			
+			GrowFlowerOn(info);
+		}
+	}
 
 	void Awake()
 	{
@@ -169,6 +196,15 @@ public class Land : MonoBehaviour {
 //		effectSprite.enabled = false;
 		
 		// m_texture = new Texture2D( result.width , result.height);
+
+
+		// setup grass prefab
+
+		if ( grassPrefab == null )
+		{
+			grassPrefab = Resources.Load( "Prefab/Rock/Grass") as GameObject;
+		}
+
 	}
 
 	float GetGaussValue( int i , int j )
@@ -210,12 +246,63 @@ public class Land : MonoBehaviour {
 		}
 	}
 
+	public bool IfCanGrowFlower()
+	{
+		return enableGrowFlower;
+	}
+
+	public void GrowFlowerOn(PetalInfo info)
+	{
+//		Debug.Log("Land Grow FLower on " + name );
+		if ( !isGrowedGrass )
+		{
+
+			int count = (int ) (grassTopOffset.x * density);
+
+			for ( int k = 0 ; k < count ;  )
+			{
+				Vector3 ranPos = transform.position
+					+ new Vector3( Random.Range( - grassTopOffset.x / 2f , grassTopOffset.x / 2f )
+						, grassTopOffset.y , 0 );
+				RaycastHit hit;
+				if( Physics.Raycast( ranPos , Vector3.down , out hit , 5f ) )
+				{
+					if ( hit.collider.gameObject == this.gameObject )
+					{
+						float delay = delayCurve.Evaluate( (info.position - hit.point ).magnitude );
+						StartCoroutine( GrowGrassOn( hit.point , hit.normal, delay));
+					}
+
+					k++;
+				}
+			}
+
+			isGrowedGrass = true;
+		}
+
+	}
+
+	public IEnumerator GrowGrassOn(Vector3 pos , Vector3 normal , float delay)
+	{
+		GameObject grassObj = Instantiate( grassPrefab ) as GameObject;
+		grassObj.transform.SetParent( transform );
+		grassObj.transform.position = pos;
+		grassObj.transform.localScale = Vector3.one;
+		grassObj.SetActive(false);
+
+		yield return new WaitForSeconds( delay );
+
+		grassObj.SetActive(true);
+
+
+		Grass grass = grassObj.GetComponent<Grass>();
+		grass.Init( normal );
+	}
+
 	void FinishGrow()
 	{
 		effectSprite.enabled = false;
-//		Color col = thisSprite.color;
-//		col.a = 1f;
-//		thisSprite.color = col;
+
 		thisSprite.color = effectParameter.mainColor;
 		isGrowFinished = true;
 
@@ -228,4 +315,14 @@ public class Land : MonoBehaviour {
 		UpdatePosition();
 		UpdateSprite();
 	}
+
+	void OnDrawGizmosSelected()
+	{
+		Gizmos.color = Color.yellow;
+		Vector3 pos = transform.position;
+		Vector3 left = pos + new Vector3(- grassTopOffset.x / 2f , grassTopOffset.y , 0 );
+		Vector3 right = pos + new Vector3( grassTopOffset.x / 2f , grassTopOffset.y , 0 );
+		Gizmos.DrawLine( left , right );
+	}
+
 }

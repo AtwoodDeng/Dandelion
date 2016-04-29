@@ -20,7 +20,7 @@ public class Flower3D : Flower , WindSensable {
 	[SerializeField] AudioSource stemGrowSound;
 	[SerializeField] FlowerTopSenseGuesture flowerTopSenseGuesture;
 
-	List<SpriteRenderer> leafList = new List<SpriteRenderer>();
+
 	BoxCollider m_Collider;
 
 	[SerializeField] protected Grow3DParameter grow3DPara;

@@ -21,7 +21,8 @@ public class OnEventEmit : OnEvent {
 	{
 		float timer = 0;
 		yield return new WaitForSeconds( delay );
-		ps.enableEmission = true;
+		var em = ps.emission;
+		em.enabled = true;
 		ps.Play();
 
 		while( true )
@@ -30,7 +31,7 @@ public class OnEventEmit : OnEvent {
 				yield break;
 			
 			timer += Time.deltaTime;
-			ps.emissionRate = timer / time * toRate;
+			em.rate = new ParticleSystem.MinMaxCurve( timer / time * toRate);
 
 
 			yield return null;

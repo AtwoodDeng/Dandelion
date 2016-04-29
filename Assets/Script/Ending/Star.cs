@@ -7,7 +7,7 @@ public class Star : MonoBehaviour {
 	[SerializeField] SpriteRenderer extend;
 	[SerializeField] public bool isActive;
 
-	[SerializeField] Color activeColor = Color.white;
+
 	[SerializeField] Color inactiveColor = Color.gray;
 
 	Color starColor;

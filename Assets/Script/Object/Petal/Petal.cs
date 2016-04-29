@@ -67,7 +67,7 @@ public class Petal : MonoBehaviour  {
 		float rotation = 0.5f;
 		if ( flower != null )
 			rotation = index / flower.petalNum;
-		transform.localRotation = Quaternion.EulerAngles(new Vector3(0,0, 2f * Mathf.PI * rotation));
+		transform.localRotation = Quaternion.Euler(new Vector3(0,0, 2f * Mathf.PI * rotation));
 
 	}
 
@@ -87,15 +87,19 @@ public class Petal : MonoBehaviour  {
 
 		if (parent != null )
 			flowerObj.transform.SetParent(parent);
+		
 		flowerObj.transform.position = position - flowerCom.root.localPosition;
+		// set z to zero 
 
-		SendGrowMessage(position);
+
+		SendGrowMessage(position,parent);
 	}
 
-	virtual protected void SendGrowMessage(Vector3 position)
+	virtual protected void SendGrowMessage(Vector3 position,Transform parent)
 	{
 		Message growMsg = new Message();
 		myGrowInfo.position = position;
+		myGrowInfo.parent = parent;
 		growMsg.AddMessage("info", myGrowInfo);
 		EventManager.Instance.PostEvent(EventDefine.GrowFlowerOn, growMsg,this);
 	}
@@ -155,6 +159,7 @@ public class Petal : MonoBehaviour  {
 
 	virtual public void OnLand(Vector3 point , Vector3 normal , GameObject obj)
 	{
+		Debug.Log("OnLand " + name + " " + obj.name );
 		if ( state == PetalState.Fly || state == PetalState.Init )
 		{
 			// set the petal stable
@@ -166,6 +171,10 @@ public class Petal : MonoBehaviour  {
 			if ( state == PetalState.Init )
 				EventManager.Instance.PostEvent( EventDefine.GrowFirstFlower );
 			state = PetalState.Land;
+
+			//check the land
+			Land land = obj.GetComponent<Land>();
+
 			//Grow a new flower on the collision point
 			Vector3 contactPoint = new Vector3( point.x , point.y , 0 );
 			Vector3 _normal = new Vector3( normal.x , normal.y , 0 );
@@ -181,9 +190,10 @@ public class Petal : MonoBehaviour  {
 				growPoint = Global.V2ToV3( hitInfo.point ) + Vector3.down * hitInfo.distance * 2;
 			}
 
-			if (checkCanGrowFlower(growPoint , _normal)) 
+			if (checkCanGrowFlower(growPoint , _normal , land)) 
 			{
 				GrowFlowerOn(growPoint, _normal , obj.transform );
+
 			} else
 			{
 				destoryMessage.AddMessage("onLand" , 1);
@@ -198,8 +208,11 @@ public class Petal : MonoBehaviour  {
 		}
 	}
 
-	virtual protected bool checkCanGrowFlower(Vector3 position , Vector3 normal )
+	virtual protected bool checkCanGrowFlower(Vector3 position , Vector3 normal , Land land = null )
 	{
+		if ( land != null && !land.IfCanGrowFlower() )
+			return false;
+		
 		if ( Vector3.Dot( Vector3.up , normal.normalized ) < 0.3f )
 			return false;
 		

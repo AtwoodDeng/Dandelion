@@ -49,7 +49,6 @@ public class FlowerTopSenseGuesture : SenseGuesture {
 		{
 			Vector2 velocity = e.Finger.DeltaPosition / Time.deltaTime; 
 			flower.Blow( velocity * Global.Pixel2Unit );
-			Debug.Log("Blow " + ( velocity * Global.Pixel2Unit ) );
 		}
 		UpdateColliderPosition();
 	}

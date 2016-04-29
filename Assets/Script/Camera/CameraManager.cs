@@ -34,7 +34,12 @@ public class CameraManager : MonoBehaviour {
 	[SerializeField] float EndFadeTime = 2f;
 	[SerializeField] float EndFadeDelay = 0;
 	[SerializeField] float CameraFollowFadeTime = 0.75f;
-	[SerializeField] float CameraFollowChange = 3f;
+	[SerializeField] float MaxFollowTime = 8f;
+
+	[SerializeField] float normalOtherSize = 7f;
+	[SerializeField] float focusOtherSize = 4f;
+
+	[SerializeField] float focusTolerance = 5f;
 
 	public Vector3 OffsetFromInit{
 		get {
@@ -67,16 +72,17 @@ public class CameraManager : MonoBehaviour {
 	{
 		
 		m_state = CameraState.Disable;
+		int temNum = blowPetals.Count;
 		int i = 0 ;
-		blowPetals.Clear();
+
 		while ( msg.ContainMessage( "petal" + i.ToString()))
 		{
 			blowPetals.Add( (Petal) msg.GetMessage("petal" + i.ToString()));
 			i++;
 		}
-		Debug.Log("blow petal " + blowPetals.Count);
-		if ( blowPetals.Count > 0 )
-			CameraStartFollow( blowPetals[0].transform );
+
+		if ( blowPetals.Count > temNum )
+			CameraStartFollow( blowPetals[temNum].transform );
 	}
 
 	void OnGrowFlower( Message msg )
@@ -111,7 +117,6 @@ public class CameraManager : MonoBehaviour {
 				}
 			}
 		}
-		Debug.Log("destory petal " + blowPetals.Count);
 
 	}
 
@@ -121,13 +126,14 @@ public class CameraManager : MonoBehaviour {
 	{
 		if ( m_state == CameraState.Free || m_state == CameraState.Disable )
 		{
+			StartFollowTime = Time.time;
 			m_state = CameraState.FollowTrans;
 			follow = trans;
 			// GetComponent<Camera>().DOOrthoSize( - CameraFollowChange , CameraFollowFadeTime ).SetRelative( true );
 			Camera[] childCameras = GetComponentsInChildren<Camera>();
 			foreach( Camera c in childCameras )
 			{
-				c.DOOrthoSize( - CameraFollowChange , CameraFollowFadeTime ).SetRelative( true ).SetEase(Ease.InCubic);
+				c.DOOrthoSize( focusOtherSize , CameraFollowFadeTime ).SetEase(Ease.InCubic);
 			}
 		}
 	}
@@ -142,7 +148,7 @@ public class CameraManager : MonoBehaviour {
 			Camera[] childCameras = GetComponentsInChildren<Camera>();
 			foreach( Camera c in childCameras )
 			{
-				c.DOOrthoSize( CameraFollowChange , CameraFollowFadeTime ).SetRelative( true ).SetEase(Ease.InCubic);
+				c.DOOrthoSize( normalOtherSize , CameraFollowFadeTime ).SetEase(Ease.OutCubic);
 			}
 		}
 	}
@@ -165,30 +171,43 @@ public class CameraManager : MonoBehaviour {
 //		transform.DOMove( Global.CAMERA_INIT_POSITION , EndFadeTime ).SetDelay(EndFadeDelay);
 		LogicManager.LevelManager.GetLevelObject().transform.DOMove( Vector3.zero , EndFadeTime ).SetDelay(EndFadeDelay);
 	}
-
-
-
+		
 	void Awake()
 	{
-//		initPos.z = Global.CAMERA_INIT_POSITION.z;s
-//		transform.position = initPos;
 		initPos.z = 0;
+
+		Camera[] childCameras = GetComponentsInChildren<Camera>();
+		foreach( Camera c in childCameras )
+		{
+			c.orthographicSize = normalOtherSize;
+		}
 	}
 
 	void Start()
 	{
+//		Debug.Log( " CM Start " + LogicManager.LevelManager.GetLevelObject().transform.position + "  " + initPos );
 		LogicManager.LevelManager.GetLevelObject().transform.position = - initPos;
 	}
 
 	Vector3 followLastPosition = Vector3.zero;
+	float StartFollowTime = 0;
 	void LateUpdate () {
 		UpdateFollow();
 	}
 
 	void UpdateFollow()
 	{		
+		
 		if ( m_state == CameraState.FollowTrans )
 		{
+			if ( ( Time.time - StartFollowTime ) > MaxFollowTime )
+			{
+				CameraStopFollow();
+			}
+
+
+			Transform lvlTrans = LogicManager.LevelManager.GetLevelObject().transform;
+
 			if ( follow != null )
 			{
 				if ( followLastPosition.magnitude > 0 )
@@ -196,7 +215,6 @@ public class CameraManager : MonoBehaviour {
 					Vector3 toPos = - follow.localPosition;
 					if ( !follow.gameObject.activeSelf )
 						return;
-					Transform lvlTrans = LogicManager.LevelManager.GetLevelObject().transform;
 					Vector3 pos = lvlTrans.position;
 					pos = Vector3.Lerp( pos , toPos , 0.1f);
 					// pos = ConstrainPosition( pos );
@@ -207,6 +225,11 @@ public class CameraManager : MonoBehaviour {
 			}else
 			{
 				followLastPosition = Vector3.zero;
+			}
+
+			if ( !ifInFrame( - lvlTrans.position ,  focusTolerance ) )
+			{
+				CameraStopFollow();
 			}
 		}
 	}
@@ -241,9 +264,10 @@ public class CameraManager : MonoBehaviour {
 					GameObject levelObj = LogicManager.LevelManager.GetLevelObject();
 					Vector3 pos = - levelObj.transform.position;
 					// move the camera
-					pos -= Global.V2ToV3( e.Finger.DeltaPosition ) * 0.01f * senseIntense;
+					Vector3 worldDelta = - Global.V2ToV3( e.Finger.DeltaPosition ) * Global.Pixel2Unit * senseIntense;
+					// pos -= Global.V2ToV3( e.Finger.DeltaPosition ) * Global.Pixel2Unit * senseIntense;
 					// restrict the range
-					pos = ConstrainPosition( pos );
+					pos = GetNewPosition( pos , worldDelta );
 					levelObj.transform.position = - pos;
 				}else if ( e.Phase == FingerMotionPhase.Ended )
 				{
@@ -253,14 +277,43 @@ public class CameraManager : MonoBehaviour {
 		}
 	}
 
-	Vector3 ConstrainPosition( Vector3 _pos )
+	Vector3 GetNewPosition( Vector3 _pos , Vector3 delta )
 	{
-		Vector3 pos = _pos;
-		pos.x = Mathf.Clamp( pos.x , frameOffset.x - frame.x / 2f ,  frameOffset.x + frame.x / 2f );
-		pos.y = Mathf.Clamp( pos.y , frameOffset.y - frame.y / 2f ,  frameOffset.y + frame.y / 2f );
-		pos.z = 0;
+		Vector3 pos = _pos + delta;
+		if ( pos.x < frameOffset.x - frame.x / 2f  && delta.x < 0 )
+			pos.x = _pos.x ;
+		if ( pos.x > frameOffset.x + frame.x / 2f  && delta.x > 0 )
+			pos.x = _pos.x ;
+
+		if ( pos.y < frameOffset.y - frame.y / 2f  && delta.y < 0 )
+			pos.y = _pos.y ;
+		if ( pos.y > frameOffset.y + frame.y / 2f  && delta.y > 0 )
+			pos.y = _pos.y ;
+
 		return pos;
 	}
+
+//	Vector3 ConstrainPosition( Vector3 _pos , Vector3 delta )
+//	{
+//		Vector3 pos = _pos;
+//
+//		pos.x = Mathf.Clamp( pos.x , frameOffset.x - frame.x / 2f ,  frameOffset.x + frame.x / 2f );
+//		pos.y = Mathf.Clamp( pos.y , frameOffset.y - frame.y / 2f ,  frameOffset.y + frame.y / 2f );
+//		pos.z = 0;
+//		return pos;
+//	}
+
+	bool ifInFrame( Vector3 pos , float tolarent )
+	{
+		if ( pos.x < (frameOffset.x - frame.x / 2f - tolarent) || pos.x > (frameOffset.x + frame.x / 2f + tolarent ) ) {
+			return false;
+		}
+		if ( pos.y < (frameOffset.y - frame.y / 2f - tolarent) || pos.y > (frameOffset.y + frame.y / 2f + tolarent ) ){
+			return false;
+		}
+		return true;
+	}
+
 
 	void OnFingerStationaryBack( FingerMotionEvent e )
 	{
@@ -331,7 +384,7 @@ public class CameraManager : MonoBehaviour {
 				inkDict[e.Finger.Index] = null;
 			}	
 		}
-//		CreatInk( e.Position , e.Finger );
+
 	}
 
 

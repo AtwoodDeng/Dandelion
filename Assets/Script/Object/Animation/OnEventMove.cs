@@ -24,7 +24,7 @@ public class OnEventMove : OnEvent {
 
 	void Post()
 	{
-		Debug.Log("Post event");
+		Debug.Log("Post event " + postEvent);
 		EventManager.Instance.PostEvent( postEvent );
 	}
 }

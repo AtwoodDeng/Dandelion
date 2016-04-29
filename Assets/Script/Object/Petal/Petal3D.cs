@@ -73,7 +73,7 @@ public class Petal3D : Petal {
         petalModelLinkIntense *= Random.Range(0.1f, 5f);
         petalModelLinkInterval *= Random.Range(0.5f, 2f);
 
-        rigidbody = GetComponent<Rigidbody2D>();
+        m_rigidbody = GetComponent<Rigidbody2D>();
 
         // the up force intense is different because of diff shape
         upForceIntense *= Random.Range(0.5f, 2f);
@@ -230,7 +230,7 @@ public class Petal3D : Petal {
     float scaleVol = 0;
     float myScale = 1f;
 
-    Rigidbody2D rigidbody;
+	Rigidbody2D m_rigidbody;
 
     void ResetForce()
     {
@@ -282,8 +282,8 @@ public class Petal3D : Petal {
     	}
 
     	// rigidbody velocity don't effect;
-    	if (rigidbody != null)	
- 		   	rigidbody.velocity = Vector2.zero;
+    	if (m_rigidbody != null)	
+ 		   	m_rigidbody.velocity = Vector2.zero;
     }
 
     void UpdatePosition(float dt )

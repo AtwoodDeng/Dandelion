@@ -151,6 +151,7 @@ public struct PetalInfo
 	public Vector3 position;
 	public PetalType type;
 	public Area affectPointArea;
+	public Transform parent;
 }
 
 [System.Serializable]

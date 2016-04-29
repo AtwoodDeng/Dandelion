@@ -4,11 +4,11 @@ using System.Collections;
 public class PetalBasic : Petal {
 
 	[SerializeField] Joint2D[] joints;
-	[SerializeField] Collider2D collider;
+	[SerializeField] Collider2D m_collider;
 
 	[SerializeField] float blowIntense;
 
-	public Rigidbody2D top;
+	public Rigidbody2D top2D;
 	public Rigidbody2D root;
 
 	// public void SetConnectBody(Rigidbody2D source)
@@ -26,10 +26,10 @@ public class PetalBasic : Petal {
 		// foreach(Joint2D j in joints)
 		// 	j.enabled = false;
 
-		top.isKinematic = false;
+		top2D.isKinematic = false;
 		root.isKinematic = false;
 
-		collider.isTrigger = false;
+		m_collider.isTrigger = false;
 	}
 
  //    void OnCollisionEnter2D(Collision2D coll)
@@ -46,14 +46,14 @@ public class PetalBasic : Petal {
 
 	override public void AddForce(Vector2 force)
 	{
-		top.AddForce(force, ForceMode2D.Impulse);
+		top2D.AddForce(force, ForceMode2D.Impulse);
 	}
 
 	override public void Blow(Vector2 vel, BlowType blowType = BlowType.Normal)
 	{
 		base.Blow(vel);
 		RemoveConnectBody();
-		top.AddForce( ( vel.normalized + Global.GetRandomDirection() * 0.1f ).normalized * vel.magnitude * blowIntense, ForceMode2D.Impulse);
+		top2D.AddForce( ( vel.normalized + Global.GetRandomDirection() * 0.1f ).normalized * vel.magnitude * blowIntense, ForceMode2D.Impulse);
 	}
 
 	public override void  Init (Flower _flower , int index )
@@ -61,12 +61,12 @@ public class PetalBasic : Petal {
 		base.Init(_flower,index);
 
 
-		if (collider == null )
-			collider = GetComponent<Collider2D>();
-		collider.isTrigger = true;
+		if (m_collider == null )
+			m_collider = GetComponent<Collider2D>();
+		m_collider.isTrigger = true;
 
 		float massRate = Random.Range(0.5f, 1.2f);
-		top.mass *= massRate;
+		top2D.mass *= massRate;
 		root.mass *= massRate;
     }
 }

@@ -21,9 +21,6 @@ public class GestureManager : MonoBehaviour {
         
 		if (selection == null )
             return;
-
-		move = gesture.Move; 
-		velocity = gesture.Velocity;
 		SenseGuesture sense = selection.GetComponent<SenseGuesture>();
 
 		if ( sense != null )
@@ -90,13 +87,6 @@ public class GestureManager : MonoBehaviour {
 			sense.DealOnFingerMotion( e );
 	}
 
-	Vector2 move;
-	float velocity;
-	void OnGUI()
-	{
-		GUILayout.Label( "Move " + move + " vel " + velocity * Global.Pixel2Unit + " screen width " + Screen.width + " P2U " + Global.Pixel2Unit);
-
-	}
 
 
 }

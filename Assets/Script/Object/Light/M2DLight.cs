@@ -85,7 +85,7 @@ public class M2DLight : MonoBehaviour {
 		for( int i = 0 ; i< lightNum ; ++ i )
 		{
 			RaycastHit2D hit2D =  Physics2D.Raycast( lights[i].transform.position , direction2D , length , mask );
-			if ( hit2D != null && hit2D.collider != null )
+			if ( hit2D.collider != null )
 			{
 
 				lights[i].material.SetFloat( "_Rate" , hit2D.distance / length + 0.01f );

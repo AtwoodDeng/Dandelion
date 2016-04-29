@@ -449,7 +449,7 @@ public class WindAdv : MonoBehaviour {
 			return OBSTACLE_3D_LAND;
 
 		RaycastHit2D hit = Physics2D.GetRayIntersection(ray, distance , mask );
-		if ( hit.centroid != null && hit.collider != null )
+		if ( hit.collider != null )
 			return OBSTACLE_2D_LAND;
 
 		return OBSTACLE_EMPTY ;
